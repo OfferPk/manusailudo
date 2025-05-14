@@ -1,0 +1,42 @@
+Ludo Game - Enhanced Website Version Development Plan
+ Phase 1: Planning and Design
+ Analyze enhancement and feature requirements (chat, leaderboards, WebSockets).
+ Select appropriate web app templates (Flask for backend, React for frontend).
+ Design enhanced game features and overall system architecture (see ludo_game_enhanced_architecture.md).
+ Define backend API endpoints (REST for user/leaderboard, WebSockets for game/chat).
+ Design database schema for users, game state, leaderboards, and chat messages.
+ Outline frontend component structure for new features (details in ludo_game_enhanced_architecture.md).
+ Plan WebSocket communication flow for real-time updates.
+ Phase 2: Backend Development (Flask)
+ Set up Flask project structure.
+ Implement user authentication and management.
+ Implement WebSocket server for real-time game logic and chat (game creation, join, start, roll, move, disconnect, chat handlers implemented; core Ludo rules and robust state management in place).
+ Develop API endpoints for leaderboard data.
+ Implement database models and logic for storing user, game, leaderboard, and chat data.
+ Set up database (MySQL configured).
+ Phase 3: Frontend Development (React)
+ Set up new React project for the enhanced game website (e.g., using create-react-app or Vite) - project created.
+ Implement basic project structure (components, services, contexts, assets, styles, pages).
+ Implement UI for user authentication (Login, Registration forms created, integration with backend auth APIs complete).
+ Set up WebSocket client service/context to connect to the Flask backend (SocketContext.js created and integrated).
+ Develop UI components for the game lobby (GameLobbyPage.js created, WebSocket integration complete).
+ Develop UI components for the game room (GameRoomPage.js created, board placeholder, WebSocket integration for game events and chat complete).
+ Develop UI components for chat functionality (chat form in GameRoomPage.js, WebSocket integration complete).
+ Develop UI components for displaying leaderboards (LeaderboardPage.js created, API integration complete).
+ Integrate game logic with WebSocket events (sending player actions, receiving game state updates in relevant page components).
+ Implement turn management and visual feedback for game events on the frontend (basic elements in GameRoomPage.js, core logic complete).
+ Ensure responsive design for various screen sizes (global styles added, component-specific refinement ongoing).
+ Phase 4: Integration and Testing
+ Integrate frontend components with backend APIs and WebSockets (all core integrations complete, backend now running with SQLite).
+ Thoroughly test all new features: chat, leaderboards, real-time multiplayer gameplay (user registration, login, game creation, joining games, playing turns, dice rolling, token movement, captures, winning conditions, chat functionality, leaderboard updates).
+ Test responsive design across different screen sizes and devices (simulated).
+ Perform end-to-end testing of user flows.
+ Test user authentication and data persistence.
+ Perform end-to-end testing of the complete game website.
+ Phase 5: Deployment and Delivery
+ Build the React frontend for production.
+ Configure Flask backend for production (using SQLite for now, serving static files).
+ Deploy the Flask backend and the React frontend.
+ Provide user with the deployed game website URL.
+ Document the development process, architecture, and setup instructions.
+ Report completion and deliver all artifacts to the user.
