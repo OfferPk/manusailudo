@@ -2,8 +2,9 @@
 
 const UIManager = {
     currentScreenId: null,
-    screens: {},
-    modals: {},
+    screens: {}, // Stores references to screen DOM elements
+    modals: {}, // Stores references to modal DOM elements
+    notificationTimeout: null,
 
     init: function() {
         // Discover all screens and modals defined in HTML
@@ -33,9 +34,6 @@ const UIManager = {
         Utils.addClass(this.screens[screenId], "active");
         this.currentScreenId = screenId;
         console.log(`Switched to screen: ${screenId}`);
-
-        // Update game state (handled by StateManager via main.js or specific managers)
-        // StateManager.updateState({ currentScreen: screenId });
     },
 
     showModal: function(modalId) {
@@ -43,8 +41,8 @@ const UIManager = {
             console.error(`Modal with id "${modalId}" not found.`);
             return;
         }
-        Utils.addClass(this.modals[modalId], "active"); // Assuming modals also use .active to show
-        console.log(`Showing modal: ${modalId}`);
+        Utils.addClass(this.modals[modalId], "active");
+        console.log(`Modal shown: ${modalId}`);
     },
 
     hideModal: function(modalId) {
@@ -53,36 +51,70 @@ const UIManager = {
             return;
         }
         Utils.removeClass(this.modals[modalId], "active");
-        console.log(`Hiding modal: ${modalId}`);
+        console.log(`Modal hidden: ${modalId}`);
     },
 
-    // Example of updating a UI element dynamically
-    updatePlayerProfileDisplay: function(playerName, playerLevel, avatarSrc) {
-        const nameEl = Utils.$("home-player-name");
-        const levelEl = Utils.$("home-player-level");
-        const avatarEl = Utils.$("home-avatar-img");
-
-        if (nameEl) nameEl.textContent = playerName || "Player";
-        if (levelEl) levelEl.textContent = playerLevel ? `Lv. ${playerLevel}` : "Lv. 1";
-        if (avatarEl) avatarEl.src = avatarSrc || CONFIG.IMAGES.defaultAvatar;
-    },
-
-    updateCurrencyDisplay: function(gold, diamonds) {
-        const goldEl = Utils.$("home-gold-currency");
-        const diamondsEl = Utils.$("home-diamonds-currency");
-
-        if (goldEl) goldEl.textContent = `Gold: ${gold || 0}`;
-        if (diamondsEl) diamondsEl.textContent = `Diamonds: ${diamonds || 0}`;
-    },
-    
-    displayVictoryMessage: function(winnerName) {
-        const messageEl = Utils.$("victory-message");
-        if (messageEl) {
-            messageEl.textContent = `${winnerName} Wins!`;
+    // Update dynamic content within the UI
+    updateElementText: function(elementId, text) {
+        const element = Utils.qs(`#${elementId}`);
+        if (element) {
+            element.textContent = text;
+        } else {
+            console.warn(`Element with id "${elementId}" not found for text update.`);
         }
-        this.switchScreen("victory-screen");
+    },
+
+    updateElementHTML: function(elementId, html) {
+        const element = Utils.qs(`#${elementId}`);
+        if (element) {
+            element.innerHTML = html;
+        } else {
+            console.warn(`Element with id "${elementId}" not found for HTML update.`);
+        }
+    },
+
+    setElementImage: function(elementId, imageUrl) {
+        const element = Utils.qs(`#${elementId}`);
+        if (element && element.tagName === "IMG") {
+            element.src = imageUrl;
+        } else if (element) { // For divs with background image
+            element.style.backgroundImage = `url(${imageUrl})`;
+        } else {
+            console.warn(`Image element with id "${elementId}" not found.`);
+        }
+    },
+
+    toggleElementVisibility: function(elementId, show) {
+        const element = Utils.qs(`#${elementId}`);
+        if (element) {
+            element.style.display = show ? "" : "none"; // Or flex, block, etc., depending on element type
+        } else {
+            console.warn(`Element with id "${elementId}" not found for visibility toggle.`);
+        }
+    },
+
+    showNotification: function(message, duration = 3000) {
+        const notificationArea = Utils.qs("#notification-area");
+        if (!notificationArea) {
+            console.warn("Notification area element not found.");
+            alert(message); // Fallback to alert
+            return;
+        }
+
+        notificationArea.textContent = message;
+        Utils.addClass(notificationArea, "visible");
+
+        if (this.notificationTimeout) {
+            clearTimeout(this.notificationTimeout);
+        }
+
+        this.notificationTimeout = setTimeout(() => {
+            Utils.removeClass(notificationArea, "visible");
+        }, duration);
     }
 };
 
-// Make UIManager globally accessible (if not using modules)
-// window.UIManager = UIManager; // Or export default UIManager; if using modules
+// If not using ES6 modules:
+// window.GameNamespace = window.GameNamespace || {};
+// window.GameNamespace.UIManager = UIManager;
+

@@ -1,95 +1,126 @@
-// utils.js: Helper functions
+// utils.js: Utility functions for the Ludo game
 
 const Utils = {
-    // Generate a random integer between min (inclusive) and max (inclusive)
-    getRandomInt: function(min, max) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    },
-
-    // Select a DOM element by ID
-    $: function(id) {
-        return document.getElementById(id);
-    },
-
-    // Select a DOM element using a CSS selector
-    qs: function(selector) {
-        return document.querySelector(selector);
-    },
-
-    // Select all DOM elements matching a CSS selector
-    qsa: function(selector) {
-        return document.querySelectorAll(selector);
-    },
-
-    // Create a DOM element with optional class and attributes
-    createElement: function(tag, className = "", attributes = {}) {
-        const element = document.createElement(tag);
-        if (className) {
-            element.className = className;
+    // Deep copy an object or array
+    deepCopy: function(obj) {
+        if (typeof obj !== "object" || obj === null) {
+            return obj; // Return primitives or null as is
         }
-        for (const attr in attributes) {
-            if (attributes.hasOwnProperty(attr)) {
-                element.setAttribute(attr, attributes[attr]);
+
+        let copy;
+        if (Array.isArray(obj)) {
+            copy = [];
+            for (let i = 0; i < obj.length; i++) {
+                copy[i] = Utils.deepCopy(obj[i]);
+            }
+        } else {
+            copy = {};
+            for (const key in obj) {
+                if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                    copy[key] = Utils.deepCopy(obj[key]);
+                }
             }
         }
+        return copy;
+    },
+
+    // Deep merge two objects (target will be mutated)
+    deepMerge: function(target, source) {
+        if (typeof target !== "object" || target === null || typeof source !== "object" || source === null) {
+            return source; // If source is primitive or target is not an object, return source
+        }
+
+        for (const key in source) {
+            if (Object.prototype.hasOwnProperty.call(source, key)) {
+                if (source[key] && typeof source[key] === "object" && !Array.isArray(source[key])) {
+                    if (!target[key] || typeof target[key] !== "object" || Array.isArray(target[key])) {
+                        target[key] = {}; // Initialize target[key] as an object if it_s not already one
+                    }
+                    Utils.deepMerge(target[key], source[key]);
+                } else {
+                    target[key] = Utils.deepCopy(source[key]); // Use deepCopy for arrays and primitives
+                }
+            }
+        }
+        return target;
+    },
+
+    // Query selector shorthand
+    qs: function(selector, parent = document) {
+        return parent.querySelector(selector);
+    },
+
+    // Query selector all shorthand
+    qsa: function(selector, parent = document) {
+        return Array.from(parent.querySelectorAll(selector));
+    },
+
+    // Create DOM element with attributes and children
+    createElement: function(tag, attributes = {}, children = []) {
+        const element = document.createElement(tag);
+        for (const key in attributes) {
+            if (key === "className") {
+                element.className = attributes[key];
+            } else if (key === "textContent") {
+                element.textContent = attributes[key];
+            } else if (key.startsWith("data-")) {
+                element.dataset[key.substring(5)] = attributes[key];
+            } else {
+                element.setAttribute(key, attributes[key]);
+            }
+        }
+        children.forEach(child => {
+            if (typeof child === "string") {
+                element.appendChild(document.createTextNode(child));
+            } else {
+                element.appendChild(child);
+            }
+        });
         return element;
     },
 
-    // Add a class to an element
+    // Add class to element
     addClass: function(element, className) {
         if (element && !element.classList.contains(className)) {
             element.classList.add(className);
         }
     },
 
-    // Remove a class from an element
+    // Remove class from element
     removeClass: function(element, className) {
         if (element && element.classList.contains(className)) {
             element.classList.remove(className);
         }
     },
 
-    // Toggle a class on an element
+    // Toggle class on element
     toggleClass: function(element, className) {
         if (element) {
             element.classList.toggle(className);
         }
     },
 
-    // Show an element (removes 'hidden' class or sets display style)
-    showElement: function(element) {
-        if (element) {
-            Utils.removeClass(element, "hidden");
-            // Or, if not using a hidden class specifically for display none:
-            // element.style.display = ''; // Or 'flex', 'block' etc. depending on context
-        }
-    },
-
-    // Hide an element (adds 'hidden' class or sets display: none)
-    hideElement: function(element) {
-        if (element) {
-            Utils.addClass(element, "hidden");
-            // Or:
-            // element.style.display = 'none';
-        }
-    },
-
-    // Get a deep copy of an object or array
-    deepCopy: function(obj) {
-        return JSON.parse(JSON.stringify(obj));
+    // Get random integer between min (inclusive) and max (inclusive)
+    getRandomInt: function(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     },
 
     // Shuffle an array (Fisher-Yates shuffle)
     shuffleArray: function(array) {
-        for (let i = array.length - 1; i > 0; i--) {
+        const arr = Utils.deepCopy(array);
+        for (let i = arr.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
+            [arr[i], arr[j]] = [arr[j], arr[i]];
         }
-        return array;
+        return arr;
     }
+
+    // Add more utility functions as needed, e.g., for event handling, debouncing, throttling, etc.
 };
 
-// Make Utils globally accessible (if not using modules)
-// window.Utils = Utils; // Or export default Utils; if using modules
+// If not using ES6 modules:
+// window.GameNamespace = window.GameNamespace || {};
+// window.GameNamespace.Utils = Utils;
+

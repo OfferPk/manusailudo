@@ -2,80 +2,108 @@
 
 const DiceRenderer = {
     diceContainer: null,
-    diceValueDisplay: null, // Could be a 3D model or a simple text display for now
+    diceImageElement: null, // To display dice face image
+    rollButton: null,
 
-    init: function(diceContainerId = "dice-container") {
-        this.diceContainer = Utils.$(diceContainerId);
-        if (!this.diceContainer) {
-            console.error(`Dice container with id "${diceContainerId}" not found.`);
-            return;
+    init: function(diceImageId = "dice-image", rollButtonId = "roll-dice-btn") {
+        this.diceImageElement = document.getElementById(diceImageId);
+        this.rollButton = document.getElementById(rollButtonId);
+
+        if (!this.diceImageElement) {
+            console.error(`Dice image element with id "${diceImageId}" not found.`);
+            // return; // Allow to continue if button exists
         }
-        // For a simple display initially:
-        this.diceValueDisplay = Utils.createElement("div", "dice-face");
-        this.diceContainer.innerHTML = "; // Clear previous content
-        this.diceContainer.appendChild(this.diceValueDisplay);
-        this.diceValueDisplay.textContent = "-"; // Initial display
+        if (!this.rollButton) {
+            console.error(`Roll button with id "${rollButtonId}" not found.`);
+            // return;
+        }
+        this.updateDiceFace(1); // Show initial dice face (e.g., 1)
         console.log("DiceRenderer initialized.");
     },
 
     // Update the dice display with the rolled value
     updateDiceFace: function(value) {
-        if (this.diceValueDisplay) {
-            this.diceValueDisplay.textContent = value > 0 ? value : "-";
-            // TODO: Implement 3D dice animation if required
-            // For now, just show the number and maybe a quick animation
-            this.diceContainer.classList.remove("rolling"); // Remove previous animation class
-            void this.diceContainer.offsetWidth; // Trigger reflow
-            this.diceContainer.classList.add("rolling"); // Add animation class
-            
-            // Remove animation class after it finishes (e.g., 0.5s)
-            setTimeout(() => {
-                this.diceContainer.classList.remove("rolling");
-            }, 500);
+        if (this.diceImageElement && value >= 1 && value <= 6) {
+            this.diceImageElement.src = CONFIG.IMAGES[`dice${value}`];
+            this.diceImageElement.alt = `Dice ${value}`;
         }
     },
 
     // Call this when the dice is about to be rolled to show an animation
-    showRollingAnimation: function() {
-        if (this.diceValueDisplay) {
-            this.diceValueDisplay.textContent = "..."; // Or an animated GIF/sprite
-            this.diceContainer.classList.add("rolling");
-        }
+    showRollingAnimation: function(callback) {
+        if (!this.diceImageElement) return;
+
+        this.diceImageElement.classList.add("rolling");
+        let rollCount = 0;
+        const maxRolls = 10; // Number of quick changes for animation
+        const intervalTime = 50; // Time between changes
+
+        const animationInterval = setInterval(() => {
+            const randomFace = Math.floor(Math.random() * 6) + 1;
+            this.updateDiceFace(randomFace);
+            rollCount++;
+            if (rollCount >= maxRolls) {
+                clearInterval(animationInterval);
+                this.diceImageElement.classList.remove("rolling");
+                if (callback) callback(); // Call the main callback after animation
+            }
+        }, intervalTime);
     },
 
-    // Enable or disable the dice (e.g., based on whose turn it is)
-    setDiceClickable: function(clickable, callback) {
-        const rollButton = Utils.$("roll-dice-btn"); // Assuming a roll button
-        if (rollButton) {
-            rollButton.disabled = !clickable;
+    // Enable or disable the dice roll button and set its click handler
+    setDiceClickable: function(clickable, onRollCallback) {
+        if (this.rollButton) {
+            this.rollButton.disabled = !clickable;
             if (clickable) {
-                Utils.removeClass(rollButton, "disabled");
+                this.rollButton.classList.remove("disabled");
                 // Remove old listener before adding new one to prevent duplicates
-                rollButton.onclick = null; 
-                rollButton.onclick = callback; 
+                this.rollButton.onclick = null; 
+                this.rollButton.onclick = () => {
+                    this.rollButton.disabled = true; // Disable button immediately after click
+                    this.rollButton.classList.add("disabled");
+                    this.showRollingAnimation(() => {
+                        if(onRollCallback) onRollCallback();
+                        // The game logic should re-enable the button if another roll is allowed or for next turn
+                    });
+                };
             } else {
-                Utils.addClass(rollButton, "disabled");
-                rollButton.onclick = null;
+                this.rollButton.classList.add("disabled");
+                this.rollButton.onclick = null;
             }
         }
     }
 };
 
-// Add to style.css:
-/*
-.dice-container.rolling .dice-face {
-    animation: rollAnim 0.5s ease-out;
+/* Add to style.css:
+.dice-image.rolling {
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    perspective: 1000px;
 }
-@keyframes rollAnim {
-    0% { transform: scale(1) rotate(0deg); opacity: 0.5; }
-    50% { transform: scale(1.2) rotate(180deg); opacity: 0.75; }
-    100% { transform: scale(1) rotate(360deg); opacity: 1; }
+
+@keyframes shake {
+  10%, 90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+  20%, 80% {
+    transform: translate3d(2px, 0, 0);
+  }
+  30%, 50%, 70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+  40%, 60% {
+    transform: translate3d(4px, 0, 0);
+  }
 }
+
 .roll-dice-btn.disabled {
-    opacity: 0.5;
+    opacity: 0.6;
     cursor: not-allowed;
 }
 */
 
-// Make DiceRenderer globally accessible (if not using modules)
-// window.DiceRenderer = DiceRenderer; // Or export default DiceRenderer; if using modules
+// If not using ES6 modules:
+// window.GameNamespace = window.GameNamespace || {};
+// window.GameNamespace.DiceRenderer = DiceRenderer;
+

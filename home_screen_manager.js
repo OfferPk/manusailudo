@@ -1,85 +1,115 @@
 // home_screen_manager.js: Manages the Home Screen UI and interactions
 
 const HomeScreenManager = {
+    isInitialized: false,
+
     init: function() {
+        if (this.isInitialized) return;
         this._setupEventListeners();
         this.updateDisplay(); // Initial display update (e.g., player profile placeholders)
         console.log("HomeScreenManager initialized.");
+        this.isInitialized = true;
+    },
+
+    activate: function() {
+        this.init(); // Ensure initialized
+        this.updateDisplay();
+        UIManager.showScreen("home-screen");
+        console.log("Home Screen activated.");
     },
 
     _setupEventListeners: function() {
-        // Game Mode Selection Buttons
-        Utils.qsa(".game-mode-card").forEach(button => {
-            button.addEventListener("click", (event) => {
-                const gameMode = event.currentTarget.dataset.mode;
-                console.log(`Game mode selected: ${gameMode}`);
-                // AssetsManager.playSound(CONFIG.SOUNDS.buttonClick);
-                
-                let numPlayers = 0;
-                let modeType = "classic";
+        // Game Mode Selection Buttons (using specific IDs from advanced_ludo.html)
+        const playFriendBtn = document.getElementById("play-friend-btn");
+        const playOnlineBtn = document.getElementById("play-online-btn");
+        const playComputerBtn = document.getElementById("play-computer-btn");
+        const tournamentsBtn = document.getElementById("tournaments-btn");
 
-                if (gameMode.includes("2p")) numPlayers = 2;
-                if (gameMode.includes("4p")) numPlayers = 4;
-                if (gameMode.includes("arrow")) modeType = "arrow";
-                
-                // Update state and switch to game table or player selection if needed
-                StateManager.updateState({
-                    numberOfPlayers: numPlayers,
-                    selectedGameMode: gameMode,
-                    // activePlayers will be set after player colors are chosen or by default
-                });
-                Main.startGame(modeType, numPlayers); // Or navigate to a player color selection first
-            });
-        });
-
-        // Settings Button
-        const settingsBtn = Utils.$("home-settings-btn");
-        if (settingsBtn) {
-            settingsBtn.addEventListener("click", () => {
+        if (playFriendBtn) {
+            playFriendBtn.addEventListener("click", () => {
                 // AssetsManager.playSound(CONFIG.SOUNDS.buttonClick);
-                UIManager.showModal("settings-modal");
+                alert("Play with Friends - Not yet implemented. Starting Classic 2 Player game.");
+                // For now, let's default to starting a game or going to player selection
+                Main.startGame("classic", 2); 
             });
         }
-        
-        // Notifications Button (Placeholder)
-        const notificationsBtn = Utils.$("home-notifications-btn");
-        if (notificationsBtn) {
-            notificationsBtn.addEventListener("click", () => {
+        if (playOnlineBtn) {
+            playOnlineBtn.addEventListener("click", () => {
                 // AssetsManager.playSound(CONFIG.SOUNDS.buttonClick);
-                alert("Notifications clicked - Feature not yet implemented.");
+                alert("Play Online - Not yet implemented. Starting Classic 4 Player game.");
+                Main.startGame("classic", 4);
+            });
+        }
+        if (playComputerBtn) {
+            playComputerBtn.addEventListener("click", () => {
+                // AssetsManager.playSound(CONFIG.SOUNDS.buttonClick);
+                // UIManager.showScreen("player-selection-screen"); // Or directly start with AI
+                alert("Play with Computer - Not yet implemented. Starting Classic 2 Player game vs AI.");
+                Main.startGame("classic_ai", 2); // Need a way to specify AI
+            });
+        }
+        if (tournamentsBtn) {
+            tournamentsBtn.addEventListener("click", () => {
+                // AssetsManager.playSound(CONFIG.SOUNDS.buttonClick);
+                alert("Tournaments - Not yet implemented.");
             });
         }
 
-        // Bottom Navigation Buttons (Placeholders for now, except "Games")
-        Utils.qsa("#home-bottom-nav button").forEach(button => {
-            button.addEventListener("click", (event) => {
-                const target = event.currentTarget.dataset.target;
+        // Daily Reward Button
+        const dailyRewardBtn = document.getElementById("daily-reward-btn");
+        if (dailyRewardBtn) {
+            dailyRewardBtn.addEventListener("click", () => {
                 // AssetsManager.playSound(CONFIG.SOUNDS.buttonClick);
-                if (target === "home") {
-                    UIManager.switchScreen("home-screen");
-                } else {
-                    alert(`${target.charAt(0).toUpperCase() + target.slice(1)} navigation clicked - Feature not yet implemented.`);
-                }
-                // Update active state for bottom nav buttons if needed
+                alert("Daily Reward claimed! (Feature not fully implemented)");
+                // Logic for daily reward system
             });
-        });
+        }
+
+        // Footer Buttons
+        const settingsBtnHome = document.getElementById("settings-btn-home");
+        const shopBtn = document.getElementById("shop-btn");
+        const leaderboardBtn = document.getElementById("leaderboard-btn");
+
+        if (settingsBtnHome) {
+            settingsBtnHome.addEventListener("click", () => {
+                // AssetsManager.playSound(CONFIG.SOUNDS.buttonClick);
+                UIManager.showScreen("settings-screen");
+            });
+        }
+        if (shopBtn) {
+            shopBtn.addEventListener("click", () => {
+                // AssetsManager.playSound(CONFIG.SOUNDS.buttonClick);
+                alert("Shop - Not yet implemented.");
+                // UIManager.showScreen("shop-screen");
+            });
+        }
+        if (leaderboardBtn) {
+            leaderboardBtn.addEventListener("click", () => {
+                // AssetsManager.playSound(CONFIG.SOUNDS.buttonClick);
+                alert("Leaderboard - Not yet implemented.");
+                // UIManager.showScreen("leaderboard-screen");
+            });
+        }
     },
 
     updateDisplay: function() {
         // Update dynamic elements on the home screen, e.g., player name, level, currencies
         // These would typically come from StateManager or a dedicated UserProfileManager
-        const userProfile = StateManager.getStateByPath("userProfile"); // Assuming userProfile state
-        UIManager.updatePlayerProfileDisplay(
-            userProfile?.name || "Guest Player", 
-            userProfile?.level || 1, 
-            userProfile?.avatar || CONFIG.IMAGES.defaultAvatar
-        );
-        UIManager.updateCurrencyDisplay(
-            userProfile?.gold || 0, 
-            userProfile?.diamonds || 0
-        );
+        const userProfile = StateManager.getStateByPath("userProfile") || { name: "Player", coins: 0, gems: 0, avatar: CONFIG.IMAGES.defaultAvatar }; 
+        
+        const playerNameHome = document.getElementById("player-name-home");
+        const playerAvatarHome = document.getElementById("player-avatar-home");
+        const playerCoins = document.getElementById("player-coins");
+        const playerGems = document.getElementById("player-gems");
+
+        if (playerNameHome) playerNameHome.textContent = userProfile.name;
+        if (playerAvatarHome) playerAvatarHome.src = userProfile.avatar || CONFIG.IMAGES.defaultAvatar;
+        if (playerCoins) playerCoins.textContent = userProfile.coins;
+        if (playerGems) playerGems.textContent = userProfile.gems;
     }
 };
 
-// Make HomeScreenManager globally accessible (if not using modules)
-// window.HomeScreenManager = HomeScreenManager; // Or export default HomeScreenManager; if using modules
+// If not using ES6 modules:
+// window.GameNamespace = window.GameNamespace || {};
+// window.GameNamespace.HomeScreenManager = HomeScreenManager;
+

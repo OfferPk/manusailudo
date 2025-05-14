@@ -28,80 +28,80 @@
         <div id="home-screen" class="screen">
             <header id="home-header">
                 <div class="player-profile">
-                    <img src="#" alt="Avatar" id="home-avatar-img">
-                    <span id="home-player-name">Player Name</span>
-                    <span id="home-player-level">Lv. 1</span>
+                    <img src="assets/images/avatar_default.png" alt="Player Avatar" id="player-avatar-home">
                 </div>
-                <div class="currencies">
-                    <span id="home-gold-currency">Gold: 0</span>
-                    <span id="home-diamonds-currency">Diamonds: 0</span>
-                </div>
-                <div class="home-actions">
-                    <button id="home-settings-btn">Settings</button>
-                    <button id="home-notifications-btn">Notifications</button>
+                <div class="game-currency">
+                    <span>Coins: <span id="player-coins">1000</span></span>
+                    <span>Gems: <span id="player-gems">50</span></span>
                 </div>
             </header>
-            <main id="home-main-content">
-                <h2>Choose Your Game</h2>
-                <button class="game-mode-card" data-mode="classic_2p">Classic Ludo - 2 Players</button>
-                <button class="game-mode-card" data-mode="classic_4p">Classic Ludo - 4 Players</button>
-                <button class="game-mode-card" data-mode="arrow_2p">Arrow Ludo - 2 Players</button>
-                <button class="game-mode-card" data-mode="arrow_4p">Arrow Ludo - 4 Players</button>
-            </main>
-            <nav id="home-bottom-nav">
-                <button data-target="home">Games</button>
-                <button data-target="social">Social</button> <!-- Placeholder -->
-                <button data-target="shop">Shop</button> <!-- Placeholder -->
-                <button data-target="events">Events</button> <!-- Placeholder -->
-                <button data-target="profile">Profile</button> <!-- Placeholder -->
+            <nav id="home-nav">
+                <button id="play-friend-btn">Play with Friends</button>
+                <button id="play-online-btn">Play Online</button>
+                <button id="play-computer-btn">Play with Computer</button>
+                <button id="tournaments-btn">Tournaments</button>
             </nav>
+            <div id="daily-rewards-section">
+                <button id="daily-reward-btn">Daily Reward</button>
+            </div>
+            <footer id="home-footer">
+                <button id="settings-btn-home">Settings</button>
+                <button id="shop-btn">Shop</button>
+                <button id="leaderboard-btn">Leaderboard</button>
+            </footer>
         </div>
 
         <!-- Screen 4: Game Table Screen (Initially Hidden) -->
         <div id="game-table-screen" class="screen">
-            <div id="player-info-panels-area">
-                <!-- Player panels will be dynamically generated -->
-            </div>
             <div id="game-board-area">
-                <!-- Ludo board will be rendered here by JS -->
+                <!-- Ludo board will be rendered here by JavaScript -->
+                <canvas id="ludo-board-canvas"></canvas>
             </div>
-            <div id="dice-and-controls-area">
-                <div id="dice-container">
-                    <!-- 3D Dice will be here -->
+            <div id="game-controls-area">
+                <div id="player-info-area">
+                    <!-- Player info, scores, turn indicator -->
                 </div>
-                <button id="roll-dice-btn">Roll Dice</button>
-                <button id="ingame-menu-btn">Menu</button>
+                <div id="dice-area">
+                    <img src="assets/images/dice_1.png" alt="Dice" id="dice-image">
+                </div>
+                <div id="chat-area">
+                    <!-- In-game chat -->
+                </div>
+                <div id="power-ups-area">
+                    <!-- Player's available power-ups -->
+                </div>
+                <button id="game-menu-btn">Menu</button>
             </div>
         </div>
 
-        <!-- Screen 5: Victory Screen (Modal or Full Screen, Initially Hidden) -->
-        <div id="victory-screen" class="screen modal-like">
-            <h2 id="victory-message">Player Wins!</h2>
-            <button id="play-again-btn">Play Again</button>
-            <button id="back-to-home-btn">Back to Home</button>
+        <!-- Screen 5: Settings Screen (Initially Hidden) -->
+        <div id="settings-screen" class="screen">
+            <h2>Settings</h2>
+            <label for="sound-volume">Sound Volume:</label>
+            <input type="range" id="sound-volume" name="sound-volume" min="0" max="100">
+            <label for="music-volume">Music Volume:</label>
+            <input type="range" id="music-volume" name="music-volume" min="0" max="100">
+            <button id="how-to-play-btn">How to Play</button>
+            <button id="logout-btn">Logout</button>
+            <button id="back-to-home-from-settings-btn">Back</button>
         </div>
 
-        <!-- Modal for Settings (Initially Hidden) -->
-        <div id="settings-modal" class="modal">
-            <h2>Settings</h2>
-            <label><input type="checkbox" id="sound-toggle" checked> Sound</label>
-            <label><input type="checkbox" id="music-toggle" checked> Music</label>
-            <button id="close-settings-modal-btn">Close</button>
-        </div>
     </div>
 
-    <!-- JavaScript files will be linked here, as per architecture -->
-    <script src="js/config.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/ui_manager.js"></script>
-    <script src="js/assets_manager.js"></script>
-    <script src="js/state_manager.js"></script>
-    <script src="js/game_logic.js"></script>
-    <script src="js/board_renderer.js"></script>
-    <script src="js/token_renderer.js"></script>
-    <script src="js/dice_renderer.js"></script>
-    <script src="js/home_screen_manager.js"></script>
-    <script src="js/game_table_manager.js"></script>
-    <script src="js/main.js"></script>
+    <script src="config.js"></script>
+    <script src="utils.js"></script>
+    <script src="assets_manager.js"></script>
+    <script src="settings_manager.js"></script>
+    <script src="ai_opponent.js"></script>
+    <script src="network_manager.js"></script>
+    <script src="state_manager.js"></script>
+    <script src="board_renderer.js"></script>
+    <script src="dice_renderer.js"></script>
+    <script src="token_renderer.js"></script>
+    <script src="game_logic.js"></script>
+    <script src="ui_manager.js"></script>
+    <script src="home_screen_manager.js"></script>
+    <script src="game_table_manager.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>

@@ -2,78 +2,94 @@
 
 const CONFIG = {
     PLAYER_COLORS: {
-        red: { hex: "#e74c3c", name: "Red" },
-        green: { hex: "#2ecc71", name: "Green" },
+        red:    { hex: "#e74c3c", name: "Red" },
+        green:  { hex: "#2ecc71", name: "Green" },
         yellow: { hex: "#f1c40f", name: "Yellow" },
-        blue: { hex: "#3498db", name: "Blue" }
+        blue:   { hex: "#3498db", name: "Blue" }
     },
     TOKENS_PER_PLAYER: 4,
-    BOARD_DIMENSIONS: 15, // 15x15 grid for the Ludo board
-    PATH_LENGTH: 52, // Standard Ludo path length (excluding home stretch)
-    HOME_STRETCH_LENGTH: 6,
-
-    // Tile indices for player start positions on the main path
-    // These are 0-indexed based on a 52-step path
+    BOARD_DIMENSIONS: 15, 
+    PATH_LENGTH: 52, 
+    HOME_STRETCH_LENGTH: 6, 
     START_TILE_INDICES: {
-        red: 0,
-        green: 13,
-        yellow: 26,
-        blue: 39
+        red: 0,    
+        green: 13, 
+        yellow: 26, 
+        blue: 39   
     },
-
-    // Path indices where players enter their home stretch
     HOME_STRETCH_ENTRY_INDICES: {
-        red: 50,    // Red enters home after tile 50 (0-51 path)
-        green: 11,  // Green enters home after tile 11
-        yellow: 24, // Yellow enters home after tile 24
-        blue: 37   // Blue enters home after tile 37
+        red: 50,    
+        green: 11,  
+        yellow: 24, 
+        blue: 37   
     },
-
-    // Define safe zone path indices (0-indexed)
-    SAFE_ZONE_INDICES: [0, 8, 13, 21, 26, 34, 39, 47],
-
-    // Define arrow tile path indices and their bonus moves
-    // Example: { index: 4, bonus: 3 } means landing on path tile 4 gives 3 extra steps
-    ARROW_TILES: [
-        { index: 4, bonus: 3 },
-        { index: 17, bonus: 3 },
-        { index: 30, bonus: 3 },
-        { index: 43, bonus: 3 }
+    SAFE_ZONE_INDICES: [
+        0, 8, 13, 21, 26, 34, 39, 47 
     ],
-
-    INITIAL_GAME_STATE: {
-        currentScreen: "loading", // Initial screen
-        numberOfPlayers: 0,
-        selectedGameMode: null, // e.g., "classic_2p", "arrow_4p"
-        activePlayers: [], // Array of player color strings, e.g., ["red", "blue"]
-        currentPlayerIndex: -1, // Index in activePlayers array
-        diceValue: 0,
-        diceRolled: false,
-        turnConsecutiveSixes: 0,
-        playerData: { // Will be populated based on selected players
-            // red: { tokens: [ { id: 0, ... }, ... ], score: 0, ... },
-            // green: { ... }, ...
+    ARROW_TILES: [],
+    ANIMATION_SPEEDS: {
+        tokenMove: 200, 
+        diceRoll: 500   
+    },
+    PATH_COORDINATES: [
+        {r:6, c:0}, {r:6, c:1}, {r:6, c:2}, {r:6, c:3}, {r:6, c:4}, {r:6, c:5}, 
+        {r:5, c:6}, {r:4, c:6}, {r:3, c:6}, {r:2, c:6}, {r:1, c:6}, {r:0, c:6}, 
+        {r:0, c:7}, 
+        {r:0, c:8}, {r:1, c:8}, {r:2, c:8}, {r:3, c:8}, {r:4, c:8}, {r:5, c:8}, 
+        {r:6, c:9}, {r:6, c:10}, {r:6, c:11}, {r:6, c:12}, {r:6, c:13}, {r:6, c:14}, 
+        {r:7, c:14}, 
+        {r:8, c:14}, {r:8, c:13}, {r:8, c:12}, {r:8, c:11}, {r:8, c:10}, {r:8, c:9}, 
+        {r:9, c:8}, {r:10, c:8}, {r:11, c:8}, {r:12, c:8}, {r:13, c:8}, {r:14, c:8}, 
+        {r:14, c:7}, 
+        {r:14, c:6}, {r:13, c:6}, {r:12, c:6}, {r:11, c:6}, {r:10, c:6}, {r:9, c:6}, 
+        {r:8, c:5}, {r:8, c:4}, {r:8, c:3}, {r:8, c:2}, {r:8, c:1}, {r:8, c:0}, 
+        {r:7, c:0}  
+    ],
+    HOME_STRETCH_COORDINATES: {
+        red:    [{r:7, c:1}, {r:7, c:2}, {r:7, c:3}, {r:7, c:4}, {r:7, c:5}, {r:7, c:6}],
+        green:  [{r:1, c:7}, {r:2, c:7}, {r:3, c:7}, {r:4, c:7}, {r:5, c:7}, {r:6, c:7}],
+        yellow: [{r:7, c:13}, {r:7, c:12}, {r:7, c:11}, {r:7, c:10}, {r:7, c:9}, {r:7, c:8}],
+        blue:   [{r:13, c:7}, {r:12, c:7}, {r:11, c:7}, {r:10, c:7}, {r:9, c:7}, {r:8, c:7}]
+    },
+    LOCAL_STORAGE_GAME_KEY: "ludoGameState",
+    LOCAL_STORAGE_SETTINGS_KEY: "ludoGameSettings",
+    ALLOW_OFFLINE_MULTIPLAYER_STUB: true, 
+    MUSIC_VOLUME: 0.5, 
+    ASSETS: {
+        IMAGES: {
+            dice1: "assets/images/dice_1.png",
+            dice2: "assets/images/dice_2.png",
+            dice3: "assets/images/dice_3.png",
+            dice4: "assets/images/dice_4.png",
+            dice5: "assets/images/dice_5.png",
+            dice6: "assets/images/dice_6.png",
+            playerAvatarDefault: "assets/images/avatar_default.png",
+            coinIcon: "assets/images/coin_icon.png",
+            diamondIcon: "assets/images/diamond_icon.png",
+            redToken: "assets/images/red_token.png", 
+            greenToken: "assets/images/green_token.png",
+            yellowToken: "assets/images/yellow_token.png",
+            blueToken: "assets/images/blue_token.png",
+            boardImage: "assets/images/ludo_board_basic.png",
+            homeScreenBg: "assets/images/home_bg.jpg"
+        },
+        SOUNDS: {
+            diceRoll: "assets/sounds/dice_roll.mp3",
+            tokenMove: "assets/sounds/token_move.wav", 
+            tokenCapture: "assets/sounds/capture.wav", 
+            gameWin: "assets/sounds/win.mp3",
+            buttonClick: "assets/sounds/button_click.mp3"
+        },
+        MUSIC: {
+            backgroundMusic: "assets/music/bg_loop.mp3"
+        },
+        PLACEHOLDERS: {
+            IMAGE: "playerAvatarDefault"
         }
-    },
-
-    // Sound asset paths (placeholders)
-    SOUNDS: {
-        diceRoll: "sounds/dice_roll.mp3",
-        tokenMove: "sounds/token_move.mp3",
-        tokenCapture: "sounds/token_capture.mp3",
-        gameWin: "sounds/game_win.mp3",
-        buttonClick: "sounds/button_click.mp3"
-    },
-
-    // Image asset paths (placeholders)
-    IMAGES: {
-        defaultAvatar: "images/avatar_default.png",
-        diceFace1: "images/dice_1.png",
-        // ... dice faces 2-6
-        // ... other UI elements if needed
     }
 };
 
-// Make CONFIG globally accessible (if not using modules, which we are for structure)
-// For simple script tags, this will be global. If using ES6 modules, export it.
-// window.CONFIG = CONFIG; // Or export default CONFIG; if using modules
+
+// If not using ES6 modules, you might attach it to window or a global game object:
+// window.GameNamespace = window.GameNamespace || {};
+// window.GameNamespace.CONFIG = CONFIG;
