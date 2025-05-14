@@ -1,0 +1,43 @@
+Phase 1: Project Setup & Detailed Design (Completed)
+ Development Environment Setup
+ Version Control Strategy (Git Initialized)
+ Detailed UI/UX Design (Wireframes, Mockups)
+ Database Schema Design
+ API Contract Definition
+ Asset Management Plan
+ DWHL Token Integration - Detailed Plan
+ Phase 4: Backend Restructuring (Completed)
+ Implement Application Factory Pattern in init.py
+ Refactor models.py and other backend files for new structure
+ Remove old app.py
+ Initialize Flask-Migrate successfully
+[-] Phase 5: Backend Development (Flask & Python) (In Progress) (Formerly Phase 2)
+ Core Infrastructure (Flask App Structure - now via App Factory)
+[-] Database Integration (SQLAlchemy Setup) (In Progress)
+ Install SQLAlchemy, Flask-Migrate, etc.
+ Configure SQLAlchemy and Flask-Migrate in init.py
+ Define Database Models (models.py)
+ Initialize Migrations Environment
+ Update DB URI to SQLite for local development
+ Generate Initial Migration (with SQLite)
+ Apply Initial Migration (with SQLite)
+ Validate Database Schema and Models
+[-] User Authentication & Authorization Models (In Progress)
+[-] Phase 3: Frontend Development (React) (In Progress)
+ Project Structure & Initial Setup
+ LoadingScreen Component & CSS
+ LoginScreen Component & CSS
+ HomeScreen Component & CSS
+ App.js Routing/Screen Management
+ GameTableScreen Component & CSS (Placeholder)
+ SettingsScreen Component & CSS (Placeholder)
+ ProfileScreen Component & CSS (Placeholder)
+ Connect UI to Backend APIs (Initial Setup)
+ Phase 6: Real-time Multiplayer Integration
+ Phase 7: Advanced Features & Enhancements
+ Phase 8: DWHL Token Reward System Integration
+ Phase 9: Asset Creation and Integration
+ Phase 10: Testing and Quality Assurance
+ Phase 11: Deployment of Final Full-Featured Game
+ Phase 12: Post-Deployment & Maintenance (Initial Setup)
+ Confirm final deployment and send public URL to the user.
