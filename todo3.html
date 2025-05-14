@@ -1,0 +1,36 @@
+Ludo Game - Website and APK Version Development Plan
+ Phase 1: Website Version (React Progressive Web App)
+ Outline plan for website and APK creation.
+ Set up React project (create_react_app).
+ Create basic directory structure (components, logic, assets, styles, contexts, hooks).
+ Migrate existing JS logic files (config, game_logic, state_manager, etc.) to src/logic.
+ Migrate CSS to src/styles.
+ Migrate image assets to src/assets/images (and generate new ones like tokens, board).
+ Create main React screen components (Loading, Home, PlayerSelection, GameTable, Settings).
+ Refactor core logic modules (CONFIG, Utils, AssetsManager, StateManager, GameLogic, AIOpponent) to be ES modules.
+ Implement React Context for global state management and actions (GameContext in Game.js).
+ Integrate AssetsManager for loading images and (placeholder) sounds/music in React, accessible via context.
+ Integrate StateManager with React Context to manage and distribute game state, with subscriptions for updates.
+ Implement Game.js orchestrator to manage screens, initialize systems, and provide actions via context.
+ Implement HomeScreen.js to use context for actions and display basic info.
+ Implement PlayerSelectionScreen.js to configure game and use context to start it.
+ Implement GameTableScreen.js with canvas for basic board/token rendering and game controls using context.
+ Implement SettingsScreen.js with controls for volume and data reset, linked to context- [x] Integrate AI Opponent logic (ai_opponent.js) for AI turns, triggered from GameTableScreen.js.- [x] Refine GameTableScreen.js rendering (detailed board from board_renderer.js concepts, token animations from token_renderer.js concepts).
+ Implement all UI interactions (e.g., highlighting playable tokens, visual feedback for game events) and ensure state consistency.
+ Add remaining UI elements and features (e.g., modals for game over/help, notifications, improved dice animation).
+ Thoroughly test game flow (all player counts, AI, rules like capture, safe zones, home entry, win conditions) in the browser.
+ Ensure styling is polished and the application is responsive.
+ Build the React application for production.
+ Deploy the static build (e.g., using deploy_apply_deployment).
+ Provide user with the deployed website URL.
+ Phase 2: Android APK Version
+ Research and select a suitable cross-platform framework (e.g., Capacitor).
+ Install and configure the chosen framework and its dependencies (Android Studio, SDKs, etc.).
+ Integrate the existing React web application into the chosen framework.
+ Adapt any platform-specific features or UI if necessary.
+ Configure app icons, splash screens, and build settings for Android.
+ Build the debug and release APK.
+ Test the APK on an Android device or emulator (User action required).with the generated APK file.
+ Phase 3: Finalization
+ Document the development process and any setup instructions.
+ Report completion and deliver all artifacts to the user.
