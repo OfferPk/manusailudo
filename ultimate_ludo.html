@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Ludo Game</title>
+    <style>
+        :root {
+            --tile-size: 40px;
+            --board-dimension: 15; /* Number of tiles across/down for the main grid */
+            --board-pixel-size: calc(var(--board-dimension) * var(--tile-size));
+            --red-color: #e74c3c; --red-light: rgba(231, 76, 60, 0.3);
+            --green-color: #2ecc71; --green-light: rgba(46, 204, 113, 0.3);
+            --yellow-color: #f1c40f; --yellow-light: rgba(241, 196, 15, 0.3);
+            --blue-color: #3498db; --blue-light: rgba(52, 152, 219, 0.3);
+            --pink-color: #e91e63; --pink-light: rgba(233, 30, 99, 0.3);
+            --black-color: #212121; --black-light: rgba(33, 33, 33, 0.3);
+            --safe-color: #d1ffd4; 
+            --path-color: #ffffff;
+            --border-color: #bdc3c7;
+            --arrow-tile-color: #e0e0e0; /* Color for arrow tiles */
+        }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        #player-selection-screen, #game-board-screen {
+            width: 100%;
+            max-width: var(--board-pixel-size);
+            text-align: center;
+        }
+        #player-selection-screen button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        #player-selection-screen button:hover {
+            background-color: #2980b9;
+        }
+        #board-area {
+            width: var(--board-pixel-size);
+            height: var(--board-pixel-size);
+            background-color: #ecf0f1;
+            border: 3px solid var(--border-color);
+            position: relative;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            display: grid;
+            grid-template-columns: repeat(var(--board-dimension), 1fr);
+            grid-template-rows: repeat(var(--board-dimension), 1fr);
+        }
+        .board-tile {
+            width: var(--tile-size);
+            height: var(--tile-size);
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            position: relative; /* For absolute positioning of pseudo-elements */
+        }
+        .player-home-yard {
+            grid-column: span 6;
+            grid-row: span 6;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 5px; 
+            padding: 10px;
+            box-sizing: border-box;
+            border: 2px dashed;
+        }
+        .red-home-yard { grid-column: 1 / 7; grid-row: 1 / 7; background-color: var(--red-light); border-color: var(--red-color);}
+        .green-home-yard { grid-column: 10 / 16; grid-row: 1 / 7; background-color: var(--green-light); border-color: var(--green-color);}
+        .yellow-home-yard { grid-column: 10 / 16; grid-row: 10 / 16; background-color: var(--yellow-light); border-color: var(--yellow-color);}
+        .blue-home-yard { grid-column: 1 / 7; grid-row: 10 / 16; background-color: var(--blue-light); border-color: var(--blue-color);}
+        
+        .token-spawn-area {
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #aaa;
+        }
+
+        .center-area {
+            grid-column: 7 / 10; 
+            grid-row: 7 / 10;
+            background-color: #7f8c8d;
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .home-triangle {
+            width: 0;
+            height: 0;
+            border-left: calc(var(--tile-size) * 1.5) solid transparent;
+            border-right: calc(var(--tile-size) * 1.5) solid transparent;
+        }
+        .red-triangle { border-bottom: var(--tile-size) solid var(--red-color); margin-bottom: 2px;} 
+        .green-triangle { border-bottom: var(--tile-size) solid var(--green-color); transform: rotate(90deg); margin-right: calc(var(--tile-size) * -0.5); margin-left: calc(var(--tile-size) * -0.5);}
+        .yellow-triangle { border-top: var(--tile-size) solid var(--yellow-color); margin-top: 2px; transform: rotate(180deg);}
+        .blue-triangle { border-bottom: var(--tile-size) solid var(--blue-color); transform: rotate(-90deg); margin-right: calc(var(--tile-size) * -0.5); margin-left: calc(var(--tile-size) * -0.5);}
+
+        .path-tile {
+            background-color: var(--path-color);
+        }
+        .path-tile.red-path { background-color: var(--red-light); }
+        .path-tile.green-path { background-color: var(--green-light); }
+        .path-tile.yellow-path { background-color: var(--yellow-light); }
+        .path-tile.blue-path { background-color: var(--blue-light); }
+
+        .safe-zone {
+            background-color: var(--safe-color) !important; 
+        }
+        .safe-zone::after {
+            content: '⭐';
+            font-size: 18px;
+            position: absolute;
+        }
+        .start-tile::before {
+            content: 'S';
+            font-size: 16px; font-weight: bold;
+            position: absolute;
+        }
+        .red-start::before { color: var(--red-color); }
+        .green-start::before { color: var(--green-color); }
+        .yellow-start::before { color: var(--yellow-color); }
+        .blue-start::before { color: var(--blue-color); }
+        
+        .arrow-tile {
+            background-color: var(--arrow-tile-color) !important;
+        }
+        .arrow-tile::after {
+            content: '➔'; /* Right arrow, adjust if needed based on path direction */
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            position: absolute;
+            /* transform: rotate(angle); Needs dynamic angle based on path direction */
+        }
+
+        .token {
+            width: calc(var(--tile-size) * 0.7);
+            height: calc(var(--tile-size) * 0.7);
+            border-radius: 50%;
+            position: absolute; 
+            border: 2px solid white;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.3s ease, top 0.5s ease, left 0.5s ease;
+        }
+        .token.red { background-color: var(--red-color); }
+        .token.blue { background-color: var(--blue-color); }
+        .token.green { background-color: var(--green-color); }
+        .token.yellow { background-color: var(--yellow-color); }
+        .token.pink { background-color: var(--pink-color); }
+        .token.black { background-color: var(--black-color); }
+        .token.selectable {
+            box-shadow: 0 0 10px 3px gold;
+            transform: scale(1.1);
+        }
+
+        #controls-area {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        #dice-container {
+            perspective: 1000px;
+        }
+        #dice {
+            width: 60px;
+            height: 60px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1s;
+            cursor: pointer;
+        }
+        .dice-face {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: #fff;
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            backface-visibility: hidden; 
+        }
+        .face-1 { transform: rotateY(0deg) translateZ(30px); }
+        .face-2 { transform: rotateY(90deg) translateZ(30px); }
+        .face-3 { transform: rotateX(90deg) translateZ(30px); }
+        .face-4 { transform: rotateX(-90deg) translateZ(30px); }
+        .face-5 { transform: rotateY(-90deg) translateZ(30px); }
+        .face-6 { transform: rotateY(180deg) translateZ(30px); }
+
+        #roll-button {
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        #roll-button:hover {
+            background-color: #229954;
+        }
+        #turn-indicator, #status-updates {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            min-height: 20px;
+            width: calc(var(--board-pixel-size) - 20px);
+        }
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.6);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto; 
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ultimate Ludo Game</h1>
+    <div class="game-container">
+        <div id="player-selection-screen">
+            <h2>Select Number of Players</h2>
+            <button onclick="setupGame(2)">2 Players</button>
+            <button onclick="setupGame(4)">4 Players</button>
+            <p><small>Note: Currently optimized for 2 or 4 players.</small></p>
+        </div>
+
+        <div id="game-board-screen" style="display:none;">
+            <div id="turn-indicator">Turn: Red</div>
+            <div id="board-area">
+                <!-- Tiles will be generated by JavaScript -->
+            </div>
+            <div id="controls-area">
+                <div id="dice-container">
+                    <div id="dice" onclick="rollDice()">
+                        <div class="dice-face face-1">1</div>
+                        <div class="dice-face face-2">2</div>
+                        <div class="dice-face face-3">3</div>
+                        <div class="dice-face face-4">4</div>
+                        <div class="dice-face face-5">5</div>
+                        <div class="dice-face face-6">6</div>
+                    </div>
+                </div>
+                <button id="roll-button" onclick="rollDice()">Roll Dice</button>
+            </div>
+            <div id="status-updates">Game status will appear here.</div>
+        </div>
+    </div>
+
+    <div id="victory-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('victory-modal')">&times;</span>
+            <h2 id="victory-message">Player Wins!</h2>
+            <button onclick="resetGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        let numberOfPlayers = 0;
+        let currentPlayerIndex = 0;
+        const playerColors = ["red", "green", "yellow", "blue"];
+        const playerInfo = {
+            red: { homeYardGrid: "1 / 7", startTileIndex: 1, homeStretchStartIndex: 52, color: "var(--red-color)", lightColor: "var(--red-light)" },
+            green: { homeYardGrid: "10 / 16", startTileIndex: 14, homeStretchStartIndex: 52 + 6, color: "var(--green-color)", lightColor: "var(--green-light)" },
+            yellow: { homeYardGrid: "10 / 16", startTileIndex: 27, homeStretchStartIndex: 52 + 12, color: "var(--yellow-color)", lightColor: "var(--yellow-light)" },
+            blue: { homeYardGrid: "1 / 7", startTileIndex: 40, homeStretchStartIndex: 52 + 18, color: "var(--blue-color)", lightColor: "var(--blue-light)" }
+        };
+
+        const BOARD_DIMENSION = 15;
+        const mainPathLength = 52;
+        const homeStretchLength = 6;
+        const arrowTileIndices = [4, 17, 30, 43]; // Path indices for arrow tiles (4th step from start)
+
+        let players = [];
+        let diceValue = 0;
+        let diceRolled = false;
+        let boardTiles = [];
+
+        const playerSelectionScreen = document.getElementById('player-selection-screen');
+        const gameBoardScreen = document.getElementById('game-board-screen');
+        const turnIndicator = document.getElementById('turn-indicator');
+        const diceElement = document.getElementById('dice');
+        const rollButton = document.getElementById('roll-button');
+        const statusUpdates = document.getElementById('status-updates');
+        const boardArea = document.getElementById('board-area');
+        const victoryModal = document.getElementById('victory-modal');
+        const victoryMessage = document.getElementById('victory-message');
+
+        function setupGame(num) {
+            numberOfPlayers = num;
+            const activePlayerColors = (numberOfPlayers === 2) ? ["red", "yellow"] : ["red", "green", "yellow", "blue"];
+            
+            players = activePlayerColors.map(colorName => ({
+                color: colorName,
+                tokens: Array(4).fill(null).map((_, i) => ({
+                    id: i,
+                    color: colorName,
+                    pathPosition: -1, 
+                    homeYardPosition: i, 
+                    onBoard: false,
+                    inHomeStretch: false,
+                    reachedHome: false,
+                    element: null
+                })),
+                startTile: playerInfo[colorName].startTileIndex,
+                homeStretchStartBoardIndex: playerInfo[colorName].homeStretchStartIndex,
+            }));
+
+            currentPlayerIndex = 0;
+            diceRolled = false;
+            playerSelectionScreen.style.display = 'none';
+            gameBoardScreen.style.display = 'flex';
+            updateTurnIndicator();
+            initializeBoardAndTokens();
+            statusUpdates.textContent = `Game started. ${players[currentPlayerIndex].color.toUpperCase()}'s turn.`;
+        }
+
+        function initializeBoardAndTokens() {
+            boardArea.innerHTML = ''; 
+            boardTiles = [];
+            createBoardLayout(); 
+            players.forEach(player => {
+                player.tokens.forEach(token => createTokenElement(token));
+                positionTokensInHomeYard(player);
+            });
+        }
+        
+        function createBoardLayout() {
+            for (let r = 0; r < BOARD_DIMENSION; r++) {
+                for (let c = 0; c < BOARD_DIMENSION; c++) {
+                    const tile = document.createElement('div');
+                    tile.classList.add('board-tile');
+                    tile.dataset.row = r;
+                    tile.dataset.col = c;
+                    boardArea.appendChild(tile);
+                    boardTiles.push({ element: tile, row: r, col: c, type: 'empty', pathIndex: -1, isSafe: false, isStart: false, isArrow: false, homeColor: null });
+                }
+            }
+            definePathAndSpecialTiles();
+        }
+
+        function definePathAndSpecialTiles() {
+            const pathCoords = [
+                {r:6, c:1}, {r:6, c:2}, {r:6, c:3}, {r:6, c:4}, {r:6, c:5}, {r:6, c:6}, // Red arm out
+                {r:5, c:6}, {r:4, c:6}, {r:3, c:6}, {r:2, c:6}, {r:1, c:6}, {r:0, c:6}, // Up Green's side
+                {r:0, c:7}, 
+                {r:1, c:8}, {r:2, c:8}, {r:3, c:8}, {r:4, c:8}, {r:5, c:8}, {r:6, c:8}, // Green arm out
+                {r:6, c:9}, {r:6, c:10}, {r:6, c:11}, {r:6, c:12}, {r:6, c:13}, {r:6, c:14}, // Right Yellow's side
+                {r:7, c:14}, 
+                {r:8, c:13}, {r:8, c:12}, {r:8, c:11}, {r:8, c:10}, {r:8, c:9}, {r:8, c:8}, // Yellow arm out
+                {r:9, c:8}, {r:10, c:8}, {r:11, c:8}, {r:12, c:8}, {r:13, c:8}, {r:14, c:8}, // Down Blue's side
+                {r:14, c:7}, 
+                {r:13, c:6}, {r:12, c:6}, {r:11, c:6}, {r:10, c:6}, {r:9, c:6}, {r:8, c:6}, // Blue arm out
+                {r:8, c:5}, {r:8, c:4}, {r:8, c:3}, {r:8, c:2}, {r:8, c:1}, {r:8, c:0}, // Left Red's side
+                {r:7, c:0}  
+            ];
+
+            pathCoords.forEach((coord, index) => {
+                const tileData = boardTiles[coord.r * BOARD_DIMENSION + coord.c];
+                tileData.element.classList.add('path-tile');
+                tileData.type = 'path';
+                tileData.pathIndex = index;
+                if (arrowTileIndices.includes(index)) {
+                    tileData.isArrow = true;
+                    tileData.element.classList.add('arrow-tile');
+                }
+            });
+
+            const homeStretches = {
+                red:    [{r:7, c:1}, {r:7, c:2}, {r:7, c:3}, {r:7, c:4}, {r:7, c:5}, {r:7, c:6}],
+                green:  [{r:1, c:7}, {r:2, c:7}, {r:3, c:7}, {r:4, c:7}, {r:5, c:7}, {r:6, c:7}],
+                yellow: [{r:7, c:13}, {r:7, c:12}, {r:7, c:11}, {r:7, c:10}, {r:7, c:9}, {r:7, c:8}],
+                blue:   [{r:13, c:7}, {r:12, c:7}, {r:11, c:7}, {r:10, c:7}, {r:9, c:7}, {r:8, c:7}]
+            };
+            Object.keys(homeStretches).forEach(color => {
+                homeStretches[color].forEach((coord, index) => {
+                    const tileData = boardTiles[coord.r * BOARD_DIMENSION + coord.c];
+                    tileData.element.classList.add('path-tile', `${color}-path`);
+                    tileData.type = 'home-stretch';
+                    tileData.pathIndex = mainPathLength + playerInfo[color].homeStretchStartIndex + index; 
+                    tileData.homeColor = color;
+                });
+            });
+
+            const safePathIndices = [1, 9, 14, 22, 27, 35, 40, 48]; 
+            safePathIndices.forEach(idx => {
+                const safeTile = boardTiles.find(t => t.pathIndex === idx && t.type === 'path');
+                if (safeTile) {
+                    safeTile.element.classList.add('safe-zone');
+                    safeTile.isSafe = true;
+                }
+            });
+
+            Object.keys(playerInfo).forEach(color => {
+                const startIdx = playerInfo[color].startTileIndex;
+                const startTile = boardTiles.find(t => t.pathIndex === startIdx && t.type === 'path');
+                if (startTile) {
+                    startTile.element.classList.add('start-tile', `${color}-start`);
+                    startTile.isStart = true;
+                }
+            });
+            
+            document.querySelector(".red-home-yard").style.backgroundColor = playerInfo.red.lightColor;
+            document.querySelector(".green-home-yard").style.backgroundColor = playerInfo.green.lightColor;
+            document.querySelector(".yellow-home-yard").style.backgroundColor = playerInfo.yellow.lightColor;
+            document.querySelector(".blue-home-yard").style.backgroundColor = playerInfo.blue.lightColor;
+
+            const center = boardArea.querySelector(".center-area") || document.createElement('div');
+            center.classList.add('center-area');
+            center.innerHTML = `<div class="home-triangle red-triangle"></div><div class="home-triangle green-triangle"></div><div class="home-triangle yellow-triangle"></div><div class="home-triangle blue-triangle"></div>`;
+            if (!boardArea.contains(center)) boardArea.appendChild(center);
+        }
+
+        function createTokenElement(token) {
+            const el = document.createElement('div');
+            el.classList.add('token', token.color);
+            el.id = `token-${token.color}-${token.id}`;
+            el.textContent = token.id + 1;
+            el.onclick = () => handleTokenClick(token);
+            token.element = el;
+        }
+
+        function positionTokensInHomeYard(player) {
+            const yardSelector = `.${player.color}-home-yard`;
+            const yardElement = boardArea.querySelector(yardSelector) || document.createElement('div');
+            yardElement.classList.add('player-home-yard', `${player.color}-home-yard`);
+            if (!boardArea.contains(yardElement)) boardArea.appendChild(yardElement);
+
+            player.tokens.forEach((token) => {
+                if (!token.onBoard) {
+                    const spawnCell = document.createElement('div');
+                    spawnCell.classList.add('token-spawn-area');
+                    spawnCell.appendChild(token.element);
+                    yardElement.appendChild(spawnCell);
+                }
+            });
+        }
+        
+        function updateTokenDOMPosition(token) {
+            let targetTileData;
+            if (token.inHomeStretch) {
+                const homeStretchTiles = boardTiles.filter(t => t.type === 'home-stretch' && t.homeColor === token.color).sort((a,b) => a.pathIndex - b.pathIndex);
+                targetTileData = homeStretchTiles[token.pathPosition];
+            } else if (token.onBoard) {
+                targetTileData = boardTiles.find(t => t.type === 'path' && t.pathIndex === token.pathPosition);
+            }
+
+            if (targetTileData) {
+                if (token.element.parentElement && token.element.parentElement.classList.contains('token-spawn-area')) {
+                    token.element.parentElement.removeChild(token.element);
+                    targetTileData.element.appendChild(token.element); 
+                } else if (!targetTileData.element.contains(token.element)) {
+                     targetTileData.element.appendChild(token.element); 
+                }
+            } else if (!token.onBoard) {
+                const yardElement = boardArea.querySelector(`.${token.color}-home-yard`);
+                const spawnCells = Array.from(yardElement.querySelectorAll('.token-spawn-area'));
+                if (spawnCells[token.homeYardPosition] && !spawnCells[token.homeYardPosition].contains(token.element)) {
+                    spawnCells[token.homeYardPosition].appendChild(token.element);
+                }
+            }
+        }
+
+        function rollDice() {
+            if (diceRolled) {
+                statusUpdates.textContent = "Already rolled. Move a token.";
+                return;
+            }
+            diceValue = Math.floor(Math.random() * 6) + 1;
+            // diceValue = 6; // For testing
+            diceRolled = true;
+            rollButton.disabled = true;
+
+            const xRand = (Math.floor(Math.random() * 4) + 1) * 90;
+            const yRand = (Math.floor(Math.random() * 4) + 1) * 90;
+            diceElement.style.transform = `rotateX(0deg) rotateY(0deg)`;
+            setTimeout(() => { 
+                 diceElement.style.transform = `rotateX(${xRand}deg) rotateY(${yRand}deg)`;
+            }, 50);
+           
+            setTimeout(() => {
+                switch (diceValue) {
+                    case 1: diceElement.style.transform = 'rotateY(0deg) translateZ(30px)'; break;
+                    case 2: diceElement.style.transform = 'rotateY(90deg) translateZ(30px)'; break;
+                    case 3: diceElement.style.transform = 'rotateX(90deg) translateZ(30px)'; break;
+                    case 4: diceElement.style.transform = 'rotateX(-90deg) translateZ(30px)'; break;
+                    case 5: diceElement.style.transform = 'rotateY(-90deg) translateZ(30px)'; break;
+                    case 6: diceElement.style.transform = 'rotateY(180deg) translateZ(30px)'; break;
+                }
+                statusUpdates.textContent = `${players[currentPlayerIndex].color.toUpperCase()} rolled a ${diceValue}.`;
+                highlightSelectableTokens();
+            }, 1050); 
+        }
+
+        function highlightSelectableTokens() {
+            const currentPlayer = players[currentPlayerIndex];
+            let canMakeAnyMove = false;
+            currentPlayer.tokens.forEach(token => {
+                token.element.classList.remove('selectable');
+                if (isValidMove(token, diceValue)) {
+                    token.element.classList.add('selectable');
+                    canMakeAnyMove = true;
+                }
+            });
+            if (!canMakeAnyMove) {
+                statusUpdates.textContent += " No valid moves. Passing turn.";
+                setTimeout(nextTurn, 1500);
+            }
+        }
+
+        function isValidMove(token, roll) {
+            if (token.reachedHome) return false;
+            if (!token.onBoard) return roll === 6;
+            
+            if (token.inHomeStretch) {
+                return token.pathPosition + roll < homeStretchLength;
+            } else {
+                const player = players.find(p => p.color === token.color);
+                const entryToHomeStretchTile = (player.startTile + mainPathLength - 2 + mainPathLength) % mainPathLength;
+                
+                let tempPos = token.pathPosition;
+                for(let i=0; i<roll; i++) {
+                    if (tempPos === entryToHomeStretchTile && player.color === token.color) { // About to enter home stretch
+                        const stepsIntoHome = roll - (i+1);
+                        return stepsIntoHome < homeStretchLength;
+                    }
+                    tempPos = (tempPos + 1) % mainPathLength;
+                }
+                return true; 
+            }
+        }
+
+        async function handleTokenClick(clickedToken) {
+            const currentPlayer = players[currentPlayerIndex];
+            if (!currentPlayer.tokens.includes(clickedToken) || !diceRolled || !clickedToken.element.classList.contains('selectable')) {
+                return;
+            }
+
+            let landedOnArrowTile = false;
+
+            if (!clickedToken.onBoard && diceValue === 6) {
+                clickedToken.onBoard = true;
+                clickedToken.pathPosition = currentPlayer.startTile;
+                statusUpdates.textContent = `${clickedToken.color.toUpperCase()} token ${clickedToken.id + 1} moved out.`;
+            } else if (clickedToken.onBoard) {
+                const player = players.find(p => p.color === clickedToken.color);
+                const entryToHomeStretchTile = (player.startTile + mainPathLength - 2 + mainPathLength) % mainPathLength;
+
+                if (clickedToken.inHomeStretch) {
+                    clickedToken.pathPosition += diceValue;
+                    if (clickedToken.pathPosition === homeStretchLength - 1) {
+                        clickedToken.reachedHome = true;
+                        statusUpdates.textContent = `${clickedToken.color.toUpperCase()} token ${clickedToken.id + 1} reached home!`;
+                    } else {
+                        statusUpdates.textContent = `${clickedToken.color.toUpperCase()} token ${clickedToken.id + 1} moved in home stretch.`;
+                    }
+                } else {
+                    let newPathPos = clickedToken.pathPosition;
+                    let enteredHomeStretchThisMove = false;
+                    for (let i = 0; i < diceValue; i++) {
+                        if (newPathPos === entryToHomeStretchTile && player.color === clickedToken.color) {
+                            const stepsIntoHome = diceValue - (i + 1);
+                            clickedToken.inHomeStretch = true;
+                            clickedToken.pathPosition = stepsIntoHome;
+                            enteredHomeStretchThisMove = true;
+                            break;
+                        }
+                        newPathPos = (newPathPos + 1) % mainPathLength;
+                    }
+
+                    if (enteredHomeStretchThisMove) {
+                         if (clickedToken.pathPosition === homeStretchLength - 1) {
+                            clickedToken.reachedHome = true;
+                            statusUpdates.textContent = `${clickedToken.color.toUpperCase()} token ${clickedToken.id + 1} reached home!`;
+                        } else {
+                            statusUpdates.textContent = `${clickedToken.color.toUpperCase()} token ${clickedToken.id+1} entered home stretch.`;
+                        }
+                    } else {
+                        clickedToken.pathPosition = newPathPos;
+                        statusUpdates.textContent = `${clickedToken.color.toUpperCase()} token ${clickedToken.id + 1} moved.`;
+                        checkForCapture(clickedToken);
+                        const currentTileData = boardTiles.find(t => t.type === 'path' && t.pathIndex === clickedToken.pathPosition);
+                        if (currentTileData && currentTileData.isArrow) {
+                            landedOnArrowTile = true;
+                        }
+                    }
+                }
+            }
+            updateTokenDOMPosition(clickedToken);
+            
+            if (landedOnArrowTile) {
+                await handleArrowTileBonus(clickedToken);
+            }
+
+            if (currentPlayer.tokens.every(t => t.reachedHome)) {
+                victoryMessage.textContent = `${currentPlayer.color.toUpperCase()} Wins the Game!`;
+                victoryModal.style.display = 'block';
+                return;
+            }
+            
+            if (diceValue === 6 && !landedOnArrowTile) { // No extra turn if arrow tile bonus happened, to prevent complex chaining for now
+                diceRolled = false;
+                rollButton.disabled = false;
+                statusUpdates.textContent += " Rolled a 6, play again!";
+                currentPlayer.tokens.forEach(t => t.element.classList.remove('selectable'));
+            } else if (!landedOnArrowTile) {
+                nextTurn();
+            }
+        }
+
+        async function handleArrowTileBonus(token) {
+            statusUpdates.textContent += ` Landed on an arrow tile! Moving 1 extra step.`;
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Pause for user to see message
+
+            const player = players.find(p => p.color === token.color);
+            const entryToHomeStretchTile = (player.startTile + mainPathLength - 2 + mainPathLength) % mainPathLength;
+
+            if (token.inHomeStretch) { // Should not happen if arrow tiles are only on main path
+                token.pathPosition += 1;
+                if (token.pathPosition >= homeStretchLength) token.pathPosition = homeStretchLength -1; // Don't overshoot
+                if (token.pathPosition === homeStretchLength - 1) token.reachedHome = true;
+            } else {
+                if (token.pathPosition === entryToHomeStretchTile && player.color === token.color) {
+                    token.inHomeStretch = true;
+                    token.pathPosition = 0; // Enter first spot of home stretch
+                } else {
+                    token.pathPosition = (token.pathPosition + 1) % mainPathLength;
+                }
+                checkForCapture(token); // Check capture after bonus move
+            }
+            updateTokenDOMPosition(token);
+            statusUpdates.textContent = `${token.color.toUpperCase()} token ${token.id + 1} moved an extra step.`;
+            
+            // Check win again after bonus move
+            if (players[currentPlayerIndex].tokens.every(t => t.reachedHome)) {
+                victoryMessage.textContent = `${players[currentPlayerIndex].color.toUpperCase()} Wins the Game!`;
+                victoryModal.style.display = 'block';
+                return;
+            }
+            // After arrow tile bonus, proceed to next turn (or another 6 if original roll was 6 and bonus didn't end turn)
+            if (diceValue === 6) {
+                 diceRolled = false;
+                rollButton.disabled = false;
+                statusUpdates.textContent += " Original roll was 6, play again!";
+                players[currentPlayerIndex].tokens.forEach(t => t.element.classList.remove('selectable'));
+            } else {
+                nextTurn();
+            }
+        }
+
+        function checkForCapture(movedToken) {
+            if (movedToken.inHomeStretch) return;
+            const targetTileData = boardTiles.find(t => t.type === 'path' && t.pathIndex === movedToken.pathPosition);
+            if (!targetTileData || targetTileData.isSafe) return;
+
+            players.forEach(player => {
+                if (player.color === movedToken.color) return;
+                player.tokens.forEach(opponentToken => {
+                    if (opponentToken.onBoard && !opponentToken.inHomeStretch && opponentToken.pathPosition === movedToken.pathPosition) {
+                        opponentToken.onBoard = false;
+                        opponentToken.pathPosition = -1;
+                        updateTokenDOMPosition(opponentToken);
+                        statusUpdates.textContent += ` ${movedToken.color.toUpperCase()} captured ${opponentToken.color.toUpperCase()} token!`;
+                    }
+                });
+            });
+        }
+
+        function updateTurnIndicator() {
+            turnIndicator.textContent = `Turn: ${players[currentPlayerIndex].color.toUpperCase()}`;
+        }
+
+        function nextTurn() {
+            diceRolled = false;
+            rollButton.disabled = false;
+            players.forEach(p => p.tokens.forEach(t => t.element && t.element.classList.remove('selectable')));
+            currentPlayerIndex = (currentPlayerIndex + 1) % numberOfPlayers;
+            updateTurnIndicator();
+            statusUpdates.textContent = `${players[currentPlayerIndex].color.toUpperCase()}'s turn. Roll the dice.`;
+        }
+
+        function resetGame() {
+            closeModal('victory-modal');
+            playerSelectionScreen.style.display = 'block';
+            gameBoardScreen.style.display = 'none';
+            boardArea.innerHTML = '';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        console.log("Ultimate Ludo Game script loaded. Arrow tiles implemented.");
+
+    </script>
+</body>
+</html>
