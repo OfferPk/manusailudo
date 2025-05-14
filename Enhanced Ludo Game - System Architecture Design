@@ -1,0 +1,160 @@
+Enhanced Ludo Game - System Architecture Design
+1. Overview
+This document outlines the system architecture for the enhanced Ludo game website. The game will feature real-time multiplayer gameplay, user accounts, leaderboards, and in-game chat functionality. The architecture will consist of a React frontend and a Flask backend, utilizing WebSockets for real-time communication.
+2. Technology Stack
+Frontend: React (potentially enhancing the existing PWA structure or a new build)
+State Management: React Context API or Redux (to be decided based on complexity)
+WebSocket Client: Standard browser WebSocket API or a library like socket.io-client (if Flask-SocketIO is used on the backend).
+Styling: Tailwind CSS (from existing project) or other modern CSS framework.
+Backend: Flask (Python)
+WebSocket Server: Flask-Sockets, Flask-SocketIO, or a similar Flask extension for WebSockets.
+Database: MySQL (as per Flask template guidance) or SQLite for simpler local development.
+ORM: SQLAlchemy.
+API: RESTful APIs for user management and leaderboards; WebSocket endpoints for game and chat.
+Deployment: To be determined (e.g., separate deployment for frontend static files and backend application).
+3. Backend Architecture (Flask)
+3.1. API Endpoints
+3.1.1. RESTful APIs
+User Authentication
+POST /api/auth/register: Register a new user.
+Request Body: { "username": "string", "email": "string", "password": "string" }
+Response: { "message": "User registered successfully" } or error.
+POST /api/auth/login: Log in an existing user.
+Request Body: { "username_or_email": "string", "password": "string" }
+Response: { "access_token": "jwt_token", "user": { "id": "int", "username": "string" } } or error.
+POST /api/auth/logout: Log out the current user (requires token).
+Response: { "message": "Logged out successfully" }.
+GET /api/auth/me: Get current authenticated user details (requires token).
+Response: { "user": { "id": "int", "username": "string", "email": "string" } }.
+Leaderboards
+GET /api/leaderboard?game_mode=<mode>&limit=<limit>: Get top scores for a specific game mode.
+Response: [ { "username": "string", "score": "int", "rank": "int" } ].
+GET /api/leaderboard/user/<user_id>?game_mode=<mode>: Get a specific user's rank and score.
+Response: { "username": "string", "score": "int", "rank": "int" }.
+3.1.2. WebSocket Endpoints
+Connection Namespace: / (or specific namespaces like /game and /chat if using Flask-SocketIO)
+Game Events (e.g., on /game namespace or with specific event names)
+Client emits join_game: { "game_id": "string", "user_id": "int" } (or handled via lobby HTTP API first)
+Server emits game_update: { "game_state": "object", "current_player": "int", "dice_roll": "int", "last_move": "object" } (broadcast to players in the game room).
+Client emits roll_dice: { "game_id": "string" }
+Client emits move_token: { "game_id": "string", "token_id": "int", "new_position": "int" }
+Server emits player_joined: { "user_id": "int", "username": "string" } (to other players in the room).
+Server emits player_left: { "user_id": "int", "username": "string" } (to other players in the room).
+Server emits game_over: { "winner_id": "int", "scores": "object" }.
+Chat Events (e.g., on /chat namespace or with specific event names)
+Client emits send_message: { "game_id": "string" (optional), "text": "string" }
+Server emits new_message: { "user_id": "int", "username": "string", "text": "string", "timestamp": "datetime" } (broadcast to players in the game room or global chat).
+3.2. Database Schema
+User Table (users)
+id (Integer, Primary Key, Auto-increment)
+username (String, Unique, Not Null)
+email (String, Unique, Not Null)
+password_hash (String, Not Null)
+created_at (DateTime, Default: CURRENT_TIMESTAMP)
+Game Table (games)
+id (String/UUID, Primary Key) - Game room ID
+game_type (String, e.g., "classic_ludo", "quick_ludo")
+status (String, e.g., "waiting", "in_progress", "finished", "abandoned")
+current_turn_player_id (Integer, Foreign Key to users.id, Nullable)
+game_state_json (Text/JSON, stores the current board, token positions, etc.)
+created_at (DateTime, Default: CURRENT_TIMESTAMP)
+updated_at (DateTime, Default: CURRENT_TIMESTAMP, On Update: CURRENT_TIMESTAMP)
+GamePlayer Table (game_players) (Many-to-Many relationship between Users and Games)
+id (Integer, Primary Key, Auto-increment)
+game_id (String/UUID, Foreign Key to games.id)
+user_id (Integer, Foreign Key to users.id)
+player_color (String, e.g., "red", "blue", "green", "yellow")
+score (Integer, Default: 0)
+is_host (Boolean, Default: False)
+joined_at (DateTime, Default: CURRENT_TIMESTAMP)
+Unique constraint on (game_id, user_id)
+Unique constraint on (game_id, player_color)
+Leaderboard Table (leaderboard_entries)
+id (Integer, Primary Key, Auto-increment)
+user_id (Integer, Foreign Key to users.id)
+game_mode (String, e.g., "classic_ludo_wins", "quick_ludo_score")
+score (Integer, Not Null)
+timestamp (DateTime, Default: CURRENT_TIMESTAMP)
+ChatMessage Table (chat_messages)
+id (Integer, Primary Key, Auto-increment)
+game_id (String/UUID, Foreign Key to games.id, Nullable - for game-specific chat)
+user_id (Integer, Foreign Key to users.id)
+username (String, Not Null) - Denormalized for easier retrieval
+message_text (Text, Not Null)
+timestamp (DateTime, Default: CURRENT_TIMESTAMP)
+3.3. Real-time Logic
+Game Room Management: The backend will manage active game rooms. Players can create, join, or leave rooms.
+Game State Synchronization: The server is the source of truth for the game state. All player actions (dice rolls, token moves) are sent to the server, validated, and then the updated game state is broadcast to all players in that room via WebSockets.
+Chat Message Handling: Chat messages are received by the server and broadcast to the relevant room or global channel.
+Turn Management: The server will manage player turns and notify the active player.
+4. Frontend Architecture (React)
+4.1. Component Structure (High-Level)
+App.js: Main application component, handles routing and global context providers.
+Screens/Pages:
+AuthPage: Contains LoginForm and RegisterForm components.
+HomePage/LobbyPage: Displays options to create a new game, join an existing game, or view leaderboards.
+GameCreationForm
+GameListComponent (shows available games to join)
+GamePage (GameRoom): The main screen for active gameplay.
+GameTableComponent (visual representation of the Ludo board, tokens, dice - potentially reusing/enhancing existing GameTableScreen.js logic).
+PlayerInfoComponent (displays current player, other players' status).
+ChatComponent (for in-game chat).
+GameControlsComponent (dice roll button, move selection UI).
+LeaderboardPage: Displays leaderboard data fetched from the backend.
+SettingsPage: (As in existing PWA, potentially with account settings).
+Shared Components:
+NavbarComponent
+ModalComponent
+ButtonComponent, InputComponent, etc.
+4.2. WebSocket Client Integration
+A global WebSocket service/context will be created to manage the connection to the Flask backend.
+Components will subscribe to this service/context to send and receive real-time messages (game updates, chat messages).
+Actions like rolling dice or moving tokens will trigger WebSocket messages to the server.
+Incoming messages from the server will update the frontend state (e.g., game board, chat log).
+4.3. State Management
+User Authentication State: Store user token and profile information (e.g., in React Context or localStorage).
+Game State: Manage the current game's state, including board positions, player turns, dice values, etc. This will be primarily driven by updates from the WebSocket server.
+Chat State: Store chat messages for the current game or global chat.
+Leaderboard State: Store fetched leaderboard data.
+5. Communication Flow Examples
+5.1. User Joins a Game
+User clicks "Join Game" on the frontend (LobbyPage).
+Frontend sends an HTTP request to a backend endpoint (e.g., POST /api/games/<game_id>/join) or a WebSocket join_game message.
+Backend validates if the user can join (game not full, user authenticated, etc.).
+If successful, backend adds the user to the game (updates game_players table), updates the game state.
+Backend broadcasts a player_joined message via WebSocket to all clients in that game room.
+Backend also sends the full game_update to the newly joined player and potentially to all players.
+Frontend clients update their UI to reflect the new player and updated game state.
+5.2. Player Makes a Move
+It's Player A's turn. Frontend UI enables controls for Player A.
+Player A clicks "Roll Dice".
+Frontend sends roll_dice WebSocket message to the server.
+Server processes the dice roll, updates the game state (dice value, possible moves).
+Server broadcasts game_update (with new dice value and potentially highlighted moves) to all players in the room.
+Frontend for Player A shows dice roll and highlights valid tokens to move.
+Player A clicks a token to move.
+Frontend sends move_token WebSocket message to the server with token ID and target position.
+Server validates the move, updates the game state (token position, next player's turn, checks for captures/home entry/win condition).
+Server broadcasts game_update to all players.
+Frontend clients update their game board and player turn indicators.
+5.3. Sending a Chat Message
+User types a message in the ChatComponent and hits send.
+Frontend sends send_message WebSocket message to the server with the message text.
+Server receives the message, adds sender information (user_id, username), and a timestamp.
+Server broadcasts new_message via WebSocket to all clients in the same game room (or global chat).
+Frontend clients receive the new_message and append it to their chat display.
+6. Key Considerations
+Scalability: For a large number of concurrent users, the WebSocket server and database will need to be designed for scalability (e.g., using appropriate server technologies like Gunicorn with gevent for Flask, and a robust database setup).
+Security: Implement proper authentication and authorization for all API endpoints and WebSocket messages. Validate all user inputs on the backend. Protect against common web vulnerabilities (XSS, CSRF, SQL Injection).
+Error Handling: Implement comprehensive error handling on both frontend and backend.
+User Experience: Ensure a smooth and responsive user experience, especially for real-time interactions.
+7. Next Steps (Implementation Outline)
+Set up Flask backend project structure.
+Implement basic user authentication (register, login).
+Set up WebSocket server (initial handshake, basic message echo).
+Develop core game logic on the backend, including game state management.
+Integrate WebSocket communication for game actions (dice roll, move token).
+Enhance React frontend to connect to WebSockets and handle game updates.
+Implement chat functionality (backend and frontend).
+Implement leaderboard functionality (backend and frontend).
+Thorough testing and refinement.
