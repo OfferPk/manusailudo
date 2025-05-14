@@ -57,21 +57,21 @@ const CONFIG = {
     MUSIC_VOLUME: 0.5, 
     ASSETS: {
         IMAGES: {
-            dice1: "assets/images/dice_1.png",
-            dice2: "assets/images/dice_2.png",
-            dice3: "assets/images/dice_3.png",
-            dice4: "assets/images/dice_4.png",
-            dice5: "assets/images/dice_5.png",
-            dice6: "assets/images/dice_6.png",
+            dice1: "assets/images/cosmic_dice.png",
+            dice2: "assets/images/cosmic_dice.png",
+            dice3: "assets/images/cosmic_dice.png",
+            dice4: "assets/images/cosmic_dice.png",
+            dice5: "assets/images/cosmic_dice.png",
+            dice6: "assets/images/cosmic_dice.png",
             playerAvatarDefault: "assets/images/avatar_default.png",
             coinIcon: "assets/images/coin_icon.png",
             diamondIcon: "assets/images/diamond_icon.png",
-            redToken: "assets/images/red_token.png", 
-            greenToken: "assets/images/green_token.png",
-            yellowToken: "assets/images/yellow_token.png",
-            blueToken: "assets/images/blue_token.png",
-            boardImage: "assets/images/ludo_board_basic.png",
-            homeScreenBg: "assets/images/home_bg.jpg"
+            redToken: "assets/images/cosmic_red_token.png", 
+            greenToken: "assets/images/cosmic_green_token.png",
+            yellowToken: "assets/images/cosmic_yellow_token.png",
+            blueToken: "assets/images/cosmic_blue_token.png",
+            boardImage: "assets/images/cosmic_ludo_board.png",
+            homeScreenBg: "assets/images/home_bg.jpg" // This might need a cosmic theme too, or be removed if not used
         },
         SOUNDS: {
             diceRoll: "assets/sounds/dice_roll.mp3",
