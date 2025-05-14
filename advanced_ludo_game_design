@@ -1,0 +1,247 @@
+# Advanced Ludo Game - Architectural Design Document
+
+## 1. Introduction
+
+This document outlines the redesigned architecture for the "Ultimate Ludo Game," aiming to incorporate advanced UI/UX elements inspired by Yalla Ludo and modern mobile game design principles, as detailed in `/home/ubuntu/yalla_ludo_references/essential_ux_gameplay_elements.md`. The goal is to create a more engaging, visually appealing, and feature-rich Ludo game experience using HTML, CSS, and JavaScript, with a focus on modularity and scalability for future enhancements.
+
+## 2. Core Design Philosophy
+
+*   **User-Centric:** Prioritize intuitive navigation, clear feedback, and an enjoyable user experience.
+*   **Visually Rich & Engaging:** Emulate the vibrant and dynamic feel of games like Yalla Ludo.
+*   **Modular & Scalable:** Structure the code to allow for easier addition of new features (e.g., more game modes, social features, monetization elements) in the future.
+*   **Performance-Oriented:** Ensure smooth animations and responsive gameplay, especially on mobile devices, despite being a web-based application.
+
+## 3. Overall Application Structure (Single HTML Page with Dynamic Content)
+
+The game will remain a single HTML file (`advanced_ludo.html`) but will dynamically show/hide and populate different "screens" or views using JavaScript.
+
+### 3.1. Main Screens/Views:
+
+1.  **Loading Screen (New):**
+    *   Purpose: Display while initial assets and scripts are loading.
+    *   Elements: Game logo, progress bar/animation.
+2.  **Player Selection Screen (Revised):**
+    *   Purpose: Select number of players (2 or 4) and potentially game mode if not selected on a dedicated home screen first.
+    *   Elements: Clear buttons for player count, perhaps color selection previews.
+3.  **Home Screen (New - Yalla Ludo Inspired):
+    *   Purpose: Main navigation hub, game mode selection, access to social features, shop, settings.
+    *   Structure:
+        *   **Top Bar:** Player Profile (Avatar, Name, Level - placeholder initially), Currencies (Gold, Diamonds - placeholders), Settings Icon, Notifications Icon.
+        *   **Main Content:** Large, visually distinct cards/buttons for game modes (e.g., "Classic Ludo 2P", "Classic Ludo 4P", "Arrow Ludo").
+        *   **Bottom Navigation Bar:** Icons for "Games" (current view), "Social" (placeholder), "Shop" (placeholder), "Events" (placeholder), "Profile" (placeholder).
+4.  **Game Table Screen (Revised - Yalla Ludo Inspired):
+    *   Purpose: Actual Ludo gameplay.
+    *   Structure:
+        *   **Main Board Area:** Visually enhanced Ludo board.
+        *   **Player Info Panels:** Around the board or in designated areas, showing player avatars, names, turn indicators, and potentially tokens at home.
+        *   **Dice Area:** Prominent 3D-style dice with rolling animation.
+        *   **Controls Area:** Buttons for rolling dice, possibly in-game chat/emoji access.
+        *   **In-Game Menu:** Access to sound settings, leave game, rules.
+5.  **Victory/End Game Screen (Revised):**
+    *   Purpose: Display winner and options to play again or return to home screen.
+    *   Elements: Winner announcement, player scores/stats (if applicable), "Play Again" button, "Home" button.
+6.  **Settings Modal (New):**
+    *   Purpose: Allow users to adjust basic settings.
+    *   Elements: Sound on/off, Music on/off, Close button.
+
+## 4. HTML Structure (`advanced_ludo.html`)
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Advanced Ludo Game</title>
+    <link rel="stylesheet" href="style.css"> <!-- External CSS for better organization -->
+</head>
+<body>
+    <div id="game-container">
+        <!-- Screen 1: Loading Screen -->
+        <div id="loading-screen" class="screen active">
+            <!-- Loading elements -->
+        </div>
+
+        <!-- Screen 2: Player Selection Screen -->
+        <div id="player-selection-screen" class="screen">
+            <!-- Player selection elements -->
+        </div>
+
+        <!-- Screen 3: Home Screen -->
+        <div id="home-screen" class="screen">
+            <header id="home-header"></header>
+            <main id="home-main-content"></main>
+            <nav id="home-bottom-nav"></nav>
+        </div>
+
+        <!-- Screen 4: Game Table Screen -->
+        <div id="game-table-screen" class="screen">
+            <div id="game-board-area"></div>
+            <div id="player-info-panels-area"></div>
+            <div id="dice-and-controls-area"></div>
+            <div id="ingame-menu-button-area"></div>
+        </div>
+
+        <!-- Screen 5: Victory Screen (Modal or Full Screen) -->
+        <div id="victory-screen" class="screen modal-like">
+            <!-- Victory elements -->
+        </div>
+
+        <!-- Modal for Settings -->
+        <div id="settings-modal" class="modal">
+            <!-- Settings elements -->
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="utils.js"></script>
+    <script src="ui_manager.js"></script>
+    <script src="assets_manager.js"></script> <!-- For managing images, sounds -->
+    <script src="state_manager.js"></script>
+    <script src="game_logic.js"></script>
+    <script src="board_renderer.js"></script>
+    <script src="token_renderer.js"></script>
+    <script src="dice_renderer.js"></script>
+    <script src="home_screen_manager.js"></script>
+    <script src="game_table_manager.js"></script>
+    <script src="main.js"></script> <!-- Main game initialization and flow -->
+</body>
+</html>
+```
+
+## 5. CSS Strategy (`style.css`)
+
+*   **Modular CSS:** Use classes extensively. Group styles by component/screen.
+*   **CSS Variables:** For theming (colors, sizes, fonts) to allow easier customization and consistency.
+    *   Example: `--primary-color`, `--accent-color`, `--tile-size`, `--font-family-main`.
+*   **Flexbox & Grid:** For layout of screens and components.
+*   **Responsive Design:** Use media queries to ensure good playability on various screen sizes, especially mobile.
+*   **Animations & Transitions:** Utilize CSS animations and transitions for UI effects (button presses, screen transitions, dice animations if not fully JS-driven).
+*   **Visual Styling:** Implement styles to match the vibrant, engaging look of Yalla Ludo (gradients, shadows, rounded corners, high-quality icon/image integration).
+
+## 6. JavaScript Architecture (Multiple .js files for modularity)
+
+### 6.1. `config.js`
+*   Game constants (board dimensions, path definitions, player colors, start positions, safe zones, arrow tile indices).
+*   Initial game settings.
+
+### 6.2. `utils.js`
+*   Helper functions (e.g., random number generation, DOM element creation/selection, array manipulation).
+
+### 6.3. `ui_manager.js`
+*   Manages screen transitions (showing/hiding screens).
+*   Handles general UI updates (e.g., modals, notifications not specific to game logic).
+*   Event listeners for global UI elements (e.g., settings button).
+
+### 6.4. `assets_manager.js` (New)
+*   Preload images, audio files.
+*   Provide easy access to asset URLs/objects.
+
+### 6.5. `state_manager.js` (Crucial for advanced features)
+*   Manages the overall game state: `currentScreen`, `numberOfPlayers`, `activePlayers`, `currentPlayerIndex`, `diceValue`, `diceRolled`, `tokensData` (positions, status for all tokens of all players), `gameMode`.
+*   Functions to get and update state, potentially using an observer pattern to notify other modules of state changes.
+*   Handles saving/loading game state (localStorage for persistence, if in scope).
+
+### 6.6. `game_logic.js`
+*   Core Ludo game rules: dice rolling logic (value generation), token movement validation, capture logic, home entry, win condition checking.
+*   Turn management.
+*   Arrow tile bonus logic.
+*   Handles different game modes (Classic, Arrow, etc.) by adjusting rules.
+
+### 6.7. `board_renderer.js`
+*   Responsible for drawing the Ludo board dynamically based on `config.js`.
+*   Creating and styling individual tiles, home yards, center area, home stretches.
+*   Marking special tiles (start, safe, arrow).
+
+### 6.8. `token_renderer.js`
+*   Creating and updating token DOM elements.
+*   Positioning tokens on the board or in home yards based on `state_manager.js` data.
+*   Applying styles for different player colors and token states (e.g., selectable, captured).
+*   Handling token animations (movement).
+
+### 6.9. `dice_renderer.js`
+*   Creating and animating the 3D dice.
+*   Displaying the rolled dice face.
+
+### 6.10. `home_screen_manager.js` (New)
+*   Populates the home screen with dynamic content (player info placeholders, game mode buttons).
+*   Handles event listeners for home screen elements (e.g., game mode selection, bottom navigation clicks - placeholders for now).
+
+### 6.11. `game_table_manager.js` (New - expands on previous direct DOM manipulation)
+*   Orchestrates the game table UI: initializes board, tokens, dice.
+*   Updates turn indicators, status messages.
+*   Handles event listeners for game table elements (dice click, token click).
+*   Communicates with `game_logic.js` and `state_manager.js`.
+
+### 6.12. `main.js`
+*   Main entry point.
+*   Initializes all modules.
+*   Sets up the initial screen (e.g., loading screen, then player selection or home screen).
+*   Manages the overall game flow between screens and states.
+
+## 7. Key Data Structures (Managed by `state_manager.js`)
+
+*   **`players` array:**
+    ```javascript
+    // Example player object
+    {
+        id: 'red',
+        colorHex: '#e74c3c',
+        name: 'Player 1', // Future use
+        avatar: 'path/to/avatar.png', // Future use
+        tokens: [
+            { id: 0, pathPosition: -1, homeYardPosition: 0, onBoard: false, inHomeStretch: false, homeStretchPosition: -1, reachedHome: false, element: null },
+            // ...3 more tokens
+        ],
+        startTileIndex: 0, // Main path index
+        homeStretchEntryPathIndex: 50, // Main path index before entering home stretch
+        homeStretchTiles: 6
+    }
+    ```
+*   **`boardTiles` array (for rendering and logic):**
+    ```javascript
+    // Example tile object (can be generated by board_renderer)
+    {
+        element: DOMElement,
+        row: r, col: c,
+        type: 'path' | 'home-yard' | 'home-stretch' | 'start' | 'safe' | 'arrow',
+        pathIndex: number, // if applicable
+        isSafe: boolean,
+        homeColor: 'red' | null // if it's a colored home stretch tile
+    }
+    ```
+*   **`gameState` object:**
+    ```javascript
+    {
+        currentScreen: 'home', // 'loading', 'player-selection', 'home', 'game-table', 'victory'
+        activePlayerId: 'red',
+        diceResult: 0,
+        isDiceRolled: false,
+        selectedGameMode: 'classic_4p',
+        // ... other global game states
+    }
+    ```
+
+## 8. Event Handling
+
+*   Centralized event listeners where possible (e.g., in `ui_manager.js` for global UI, `game_table_manager.js` for game interactions).
+*   Use event delegation for dynamically created elements (like tokens on tiles).
+*   Custom events or callbacks can be used for communication between modules (e.g., when game logic updates state, it notifies renderer modules).
+
+## 9. Scalability & Future Features Considerations
+
+*   **Game Modes:** The `game_logic.js` and `state_manager.js` should be designed to easily accommodate new rule sets or variations for different game modes.
+*   **Social Features:** Placeholders in UI and structure for future integration of friends lists, chat, etc.
+*   **Monetization:** Placeholders for shop, currency display.
+*   **AI Opponents:** Game logic should be separable enough to allow an AI module to interact with it in place of a human player.
+*   **Theming:** CSS variables and modular asset management will facilitate easier visual theming.
+
+## 10. Initial Implementation Focus (MVP for Advanced Version)
+
+1.  Implement the new screen structure (Loading, Home, Game Table, Victory, Settings Modal).
+2.  Develop the Yalla Ludo-inspired Home Screen UI (static initially, then dynamic game mode selection).
+3.  Refine the Game Table UI based on Yalla Ludo inspiration (board, player info, dice).
+4.  Ensure core Ludo mechanics (4 tokens, captures, win, 6 for out/extra turn, arrow tile) are robust within the new architecture for 2 and 4 players.
+5.  Basic settings (sound on/off).
+
+This architectural redesign provides a more robust and flexible foundation for building the advanced Ludo game the user envisions.
