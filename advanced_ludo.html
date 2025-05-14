@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Advanced Ludo Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Screen 1: Loading Screen -->
+        <div id="loading-screen" class="screen active">
+            <h1>Loading Advanced Ludo...</h1>
+            <div class="spinner"></div> <!-- Basic spinner for loading -->
+        </div>
+
+        <!-- Screen 2: Player Selection Screen (Initially Hidden) -->
+        <div id="player-selection-screen" class="screen">
+            <h2>Select Number of Players</h2>
+            <button id="2-players-btn">2 Players</button>
+            <button id="4-players-btn">4 Players</button>
+            <h2>Select Game Mode</h2>
+            <button id="classic-mode-btn">Classic Mode</button>
+            <button id="arrow-mode-btn">Arrow Mode</button>
+        </div>
+
+        <!-- Screen 3: Home Screen (Initially Hidden) -->
+        <div id="home-screen" class="screen">
+            <header id="home-header">
+                <div class="player-profile">
+                    <img src="#" alt="Avatar" id="home-avatar-img">
+                    <span id="home-player-name">Player Name</span>
+                    <span id="home-player-level">Lv. 1</span>
+                </div>
+                <div class="currencies">
+                    <span id="home-gold-currency">Gold: 0</span>
+                    <span id="home-diamonds-currency">Diamonds: 0</span>
+                </div>
+                <div class="home-actions">
+                    <button id="home-settings-btn">Settings</button>
+                    <button id="home-notifications-btn">Notifications</button>
+                </div>
+            </header>
+            <main id="home-main-content">
+                <h2>Choose Your Game</h2>
+                <button class="game-mode-card" data-mode="classic_2p">Classic Ludo - 2 Players</button>
+                <button class="game-mode-card" data-mode="classic_4p">Classic Ludo - 4 Players</button>
+                <button class="game-mode-card" data-mode="arrow_2p">Arrow Ludo - 2 Players</button>
+                <button class="game-mode-card" data-mode="arrow_4p">Arrow Ludo - 4 Players</button>
+            </main>
+            <nav id="home-bottom-nav">
+                <button data-target="home">Games</button>
+                <button data-target="social">Social</button> <!-- Placeholder -->
+                <button data-target="shop">Shop</button> <!-- Placeholder -->
+                <button data-target="events">Events</button> <!-- Placeholder -->
+                <button data-target="profile">Profile</button> <!-- Placeholder -->
+            </nav>
+        </div>
+
+        <!-- Screen 4: Game Table Screen (Initially Hidden) -->
+        <div id="game-table-screen" class="screen">
+            <div id="player-info-panels-area">
+                <!-- Player panels will be dynamically generated -->
+            </div>
+            <div id="game-board-area">
+                <!-- Ludo board will be rendered here by JS -->
+            </div>
+            <div id="dice-and-controls-area">
+                <div id="dice-container">
+                    <!-- 3D Dice will be here -->
+                </div>
+                <button id="roll-dice-btn">Roll Dice</button>
+                <button id="ingame-menu-btn">Menu</button>
+            </div>
+        </div>
+
+        <!-- Screen 5: Victory Screen (Modal or Full Screen, Initially Hidden) -->
+        <div id="victory-screen" class="screen modal-like">
+            <h2 id="victory-message">Player Wins!</h2>
+            <button id="play-again-btn">Play Again</button>
+            <button id="back-to-home-btn">Back to Home</button>
+        </div>
+
+        <!-- Modal for Settings (Initially Hidden) -->
+        <div id="settings-modal" class="modal">
+            <h2>Settings</h2>
+            <label><input type="checkbox" id="sound-toggle" checked> Sound</label>
+            <label><input type="checkbox" id="music-toggle" checked> Music</label>
+            <button id="close-settings-modal-btn">Close</button>
+        </div>
+    </div>
+
+    <!-- JavaScript files will be linked here, as per architecture -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/ui_manager.js"></script>
+    <script src="js/assets_manager.js"></script>
+    <script src="js/state_manager.js"></script>
+    <script src="js/game_logic.js"></script>
+    <script src="js/board_renderer.js"></script>
+    <script src="js/token_renderer.js"></script>
+    <script src="js/dice_renderer.js"></script>
+    <script src="js/home_screen_manager.js"></script>
+    <script src="js/game_table_manager.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
