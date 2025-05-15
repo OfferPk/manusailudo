@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Ludo Basics</title>
+    <style>
+        :root {
+            --cell-size: clamp(20px, 4vmin, 40px); /* Responsive cell size */
+            --board-cols: 15;
+            --board-rows: 15;
+            --piece-size-factor: 0.7; /* Piece size relative to cell size */
+
+            --color-red: #FF4136;
+            --color-blue: #0074D9;
+            --color-green: #2ECC40;
+            --color-yellow: #FFDC00;
+            --color-neutral-light: #f0f0f0;
+            --color-neutral-dark: #333;
+            --color-track: #DDDDDD;
+            --color-safe: #C0C0C0; /* Color for safe/star spots */
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 10px;
+            background-color: var(--color-neutral-light);
+            color: var(--color-neutral-dark);
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        #ludo-app {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px; /* Max width for the app content */
+        }
+
+        #board-container {
+            width: calc(var(--cell-size) * var(--board-cols));
+            height: calc(var(--cell-size) * var(--board-rows));
+            display: grid;
+            grid-template-columns: repeat(var(--board-cols), var(--cell-size));
+            grid-template-rows: repeat(var(--board-rows), var(--cell-size));
+            border: 2px solid var(--color-neutral-dark);
+            position: relative; /* For absolute positioning of pieces */
+            background-color: white;
+            margin-bottom: 20px;
+        }
+
+        .board-cell {
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: calc(var(--cell-size) * 0.3);
+        }
+
+        .home-area-bg { /* Background color for the 6x6 home quadrant */
+            z-index: 0;
+        }
+        .red-bg { background-color: var(--color-red); opacity: 0.3; }
+        .green-bg { background-color: var(--color-green); opacity: 0.3; }
+        .yellow-bg { background-color: var(--color-yellow); opacity: 0.3; }
+        .blue-bg { background-color: var(--color-blue); opacity: 0.3; }
+
+        .home-slot { /* Where pieces rest in home */
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border: 1px dashed #555;
+        }
+        
+        .track-cell { background-color: var(--color-track); }
+        .start-cell { font-weight: bold; } /* Indicates player start visually */
+        .red-start { box-shadow: inset 0 0 0 2px var(--color-red); }
+        .green-start { box-shadow: inset 0 0 0 2px var(--color-green); }
+        .yellow-start { box-shadow: inset 0 0 0 2px var(--color-yellow); }
+        .blue-start { box-shadow: inset 0 0 0 2px var(--color-blue); }
+        
+        .home-path-cell.red-path { background-color: var(--color-red); }
+        .home-path-cell.green-path { background-color: var(--color-green); }
+        .home-path-cell.yellow-path { background-color: var(--color-yellow); }
+        .home-path-cell.blue-path { background-color: var(--color-blue); }
+
+        .center-target { /* The very center of the board */
+            background-color: #aaa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: calc(var(--cell-size) * 0.8);
+            line-height: 1;
+        }
+        .center-target.red-target { border-top: calc(var(--cell-size)*1.5) solid var(--color-red); }
+        .center-target.green-target { border-right: calc(var(--cell-size)*1.5) solid var(--color-green); }
+        .center-target.yellow-target { border-bottom: calc(var(--cell-size)*1.5) solid var(--color-yellow); }
+        .center-target.blue-target { border-left: calc(var(--cell-size)*1.5) solid var(--color-blue); }
+
+
+        .piece {
+            width: calc(var(--cell-size) * var(--piece-size-factor));
+            height: calc(var(--cell-size) * var(--piece-size-factor));
+            border-radius: 50%;
+            position: absolute;
+            box-sizing: border-box;
+            border: 2px solid black;
+            z-index: 10;
+            transition: left 0.3s ease, top 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: calc(var(--cell-size) * var(--piece-size-factor) * 0.5);
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 2px black;
+        }
+        .piece.red-piece { background-color: var(--color-red); }
+        .piece.blue-piece { background-color: var(--color-blue); }
+        .piece.green-piece { background-color: var(--color-green); }
+        .piece.yellow-piece { background-color: var(--color-yellow); }
+
+        .piece.highlight {
+            box-shadow: 0 0 10px 3px gold;
+            cursor: pointer;
+        }
+        .piece.not-movable {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #controls {
+            text-align: center;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: calc(var(--cell-size) * var(--board-cols)); /* Match board width */
+        }
+        #turn-indicator { font-size: 1.5em; margin-bottom: 10px; font-weight: bold; }
+        #roll-dice-btn {
+            font-size: 1.2em;
+            padding: 10px 20px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        #roll-dice-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #dice-result { font-size: 1.2em; margin-bottom: 10px; }
+        #message-area { 
+            font-size: 1em; 
+            min-height: 1.5em; 
+            color: var(--color-red); 
+            font-weight: bold;
+        }
+
+        /* Responsive adjustments for controls on smaller screens */
+        @media (max-width: 600px) {
+            body { padding: 5px; }
+            #controls { padding: 10px; }
+            #turn-indicator { font-size: 1.2em; }
+            #roll-dice-btn { font-size: 1em; padding: 8px 15px; }
+            #dice-result { font-size: 1em; }
+        }
+
+    </style>
+</head>
+<body>
+    <div id="ludo-app">
+        <h1>Ludo Basics Learner</h1>
+        <div id="board-container"></div>
+        <div id="controls">
+            <div id="turn-indicator">Current Turn: Red</div>
+            <button id="roll-dice-btn">Roll Dice</button>
+            <div id="dice-result">Dice: -</div>
+            <div id="message-area"></div>
+        </div>
+    </div>
+
+    <script>
+        const LudoGame = {
+            config: {
+                colors: ['red', 'green', 'yellow', 'blue'],
+                piecesPerPlayer: 4,
+                trackLength: 52,
+                homeStretchLength: 6, // 5 steps + 1 final home spot
+                // Start positions on the 0-indexed main track (0-51)
+                // These are the actual squares pieces land on when leaving home.
+                startTrackMap: { red: 0, green: 13, yellow: 26, blue: 39 },
+                // Track index *before* turning into home path
+                homeEntryTrackMap: { red: 50, green: 11, yellow: 24, blue: 37 },
+                // Board layout (15x15 grid)
+                // Grid cells are 1-indexed for CSS grid-column/row-start
+                cellSizePx: 0, // will be calculated from :root --cell-size
+                boardCellDefinitions: [], // To be populated by generateBoardDefinitions
+            },
+            state: {
+                currentPlayerIndex: 0,
+                diceValue: null,
+                gamePhase: 'ROLLING', // ROLLING, PIECE_SELECTION
+                players: [],
+                message: '',
+            },
+
+            init() {
+                // Calculate actual cell size in pixels for piece positioning
+                const rootStyle = getComputedStyle(document.documentElement);
+                const cellSizeStr = rootStyle.getPropertyValue('--cell-size').trim();
+                if (cellSizeStr.endsWith('px')) {
+                    this.config.cellSizePx = parseFloat(cellSizeStr);
+                } else if (cellSizeStr.endsWith('vmin')) {
+                    const val = parseFloat(cellSizeStr);
+                    this.config.cellSizePx = (val / 100) * Math.min(window.innerWidth, window.innerHeight);
+                } else { // Fallback for other units or if parsing fails, not perfect
+                    this.config.cellSizePx = 30; 
+                }
+                
+                this.generateBoardDefinitions();
+                this.drawBoardCells();
+                this.createPlayersAndPieces();
+                this.updateUI();
+
+                document.getElementById('roll-dice-btn').addEventListener('click', () => this.rollDice());
+                document.getElementById('board-container').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('piece')) {
+                        this.handlePieceClick(e.target.id);
+                    }
+                });
+            },
+
+            generateBoardDefinitions() {
+                const defs = [];
+                const R = (r) => r + 1; // 0-indexed to 1-indexed for CSS grid
+
+                // Home Area Backgrounds (6x6 quadrants)
+                const homeQuadrants = [
+                    { color: 'red',    colStart: 0, rowStart: 0 },
+                    { color: 'green',  colStart: 9, rowStart: 0 },
+                    { color: 'yellow', colStart: 9, rowStart: 9 },
+                    { color: 'blue',   colStart: 0, rowStart: 9 },
+                ];
+                homeQuadrants.forEach(hq => {
+                    defs.push({ type: 'home-area-bg', color: hq.color, gridPos: { col: R(hq.colStart), row: R(hq.rowStart), colSpan: 6, rowSpan: 6 } });
+                });
+                
+                // Home Slots (2x2 area within each 6x6 quadrant)
+                const homeSlotCoords = [ // relative to home quadrant top-left 0,0
+                    {r:1, c:1}, {r:1, c:3}, {r:3, c:1}, {r:3, c:3}
+                ];
+                this.config.colors.forEach(color => {
+                    const hq = homeQuadrants.find(q => q.color === color);
+                    homeSlotCoords.forEach((coord, i) => {
+                        defs.push({
+                            type: 'home-slot', id: `${color}-home-slot-${i}`, color: color,
+                            gridPos: { col: R(hq.colStart + coord.c), row: R(hq.rowStart + coord.r), colSpan:2, rowSpan:2 }
+                        });
+                    });
+                });
+
+                // Main Track Cells (52 cells) - Simplified L-shape arms
+                // Order: Red's path, Green's path, Yellow's path, Blue's path
+                const trackPath = [
+                    // Red arm path (up, then right towards Green start)
+                    {c:6,r:5},{c:6,r:4},{c:6,r:3},{c:6,r:2},{c:6,r:1},{c:6,r:0}, // Up (6 cells) idx 0-5. Red start is 0. Red home entry is 50.
+                    {c:7,r:0},{c:8,r:0}, // Across top (2 cells) idx 6-7
+                    // Green arm path (right, then down towards Yellow start)
+                    {c:8,r:1},{c:8,r:2},{c:8,r:3},{c:8,r:4},{c:8,r:5},{c:8,r:6}, // Right (6 cells) idx 8-13. Green start is 13. Green home entry is 11.
+                    {c:8,r:7},{c:8,r:8}, // Down right (2 cells) idx 14-15
+                    // Yellow arm path (down, then left towards Blue start)
+                    {c:7,r:8},{c:6,r:8},{c:5,r:8},{c:4,r:8},{c:3,r:8},{c:2,r:8}, // Down (6 cells) idx 16-21 -> no, these should be yellow's path
+                    // Correcting path from Green to Yellow
+                    // After {c:8,r:8} (idx 15), continue path for Yellow
+                    {c:7,r:8},{c:6,r:8}, // Path towards Yellow (2 cells) idx 16-17
+                    {c:6,r:9},{c:6,r:10},{c:6,r:11},{c:6,r:12},{c:6,r:13},{c:6,r:14},// Yellow path. Yellow start is 26. Yellow home entry is 24.
+                    {c:5,r:14},{c:4,r:14}, // Across bottom (2 cells)
+                    // Blue arm path (left, then up towards Red start)
+                    {c:4,r:13},{c:4,r:12},{c:4,r:11},{c:4,r:10},{c:4,r:9},{c:4,r:8}, // Blue path. Blue start is 39. Blue home entry is 37.
+                    {c:4,r:7},{c:4,r:6}, // Up left (2 cells)
+                    // Connecting Blue back to Red's starting segment
+                    {c:5,r:6},{c:6,r:6} // Path towards Red's vertical line
+                ];
+                // This path definition is tricky. Let's use a standard 52-cell definition.
+                // Standard Ludo path coordinates (0-indexed grid positions for a 15x15 board)
+                const standardPath = [
+                    // Red's starting strip (upwards)
+                    {c:6,r:13},{c:6,r:12},{c:6,r:11},{c:6,r:10},{c:6,r:9}, // 0-4 (Red Start is 0)
+                    // Top horizontal strip (leftwards)
+                    {c:5,r:8},{c:4,r:8},{c:3,r:8},{c:2,r:8},{c:1,r:8},{c:0,r:8}, // 5-10
+                    {c:0,r:7}, // 11 (Top-left turn) (Green home entry)
+                    // Green's starting strip (leftwards)
+                    {c:1,r:6},{c:2,r:6},{c:3,r:6},{c:4,r:6},{c:5,r:6}, // 12-16 (Green Start is 13)
+                    // Left vertical strip (upwards)
+                    {c:6,r:5},{c:6,r:4},{c:6,r:3},{c:6,r:2},{c:6,r:1},{c:6,r:0}, // 17-22
+                    {c:7,r:0}, // 23 (Top-right turn) (Yellow home entry)
+                    // Yellow's starting strip (downwards)
+                    {c:8,r:1},{c:8,r:2},{c:8,r:3},{c:8,r:4},{c:8,r:5}, // 24-28 (Yellow Start is 26)
+                    // Bottom horizontal strip (rightwards)
+                    {c:9,r:6},{c:10,r:6},{c:11,r:6},{c:12,r:6},{c:13,r:6},{c:14,r:6}, // 29-34
+                    {c:14,r:7}, // 35 (Bottom-right turn) (Blue home entry)
+                    // Blue's starting strip (rightwards)
+                    {c:13,r:8},{c:12,r:8},{c:11,r:8},{c:10,r:8},{c:9,r:8}, // 36-40 (Blue Start is 39)
+                    // Right vertical strip (downwards)
+                    {c:8,r:9},{c:8,r:10},{c:8,r:11},{c:8,r:12},{c:8,r:13},{c:8,r:14}, // 41-46
+                    {c:7,r:14}, // 47 (Bottom-left turn) (Red home entry)
+                    // Red's final strip towards its home path entry
+                    {c:6,r:13} // This should be c:7,r:13 to align with home path. Path is 52 cells.
+                    // This part is complex, let's adjust the standard path:
+                    // Red path to home entry: last cells are 48,49,50,51. Red home entry is 50.
+                    // The track definitions need to match the startTrackMap and homeEntryTrackMap.
+                    // Red: start 0, home entry 50.
+                    // Path from 47 (bottom-left turn {c:7,r:14})
+                    // {c:6,r:14}, {c:6,r:13}, {c:6,r:12}, {c:6,r:11} // 48, 49, 50, 51
+                    // This makes the track 52 cells. Red Start is track[0]. Red Home Entry is track[50].
+                ];
+                // Re-evaluating standardPath for 52 cells. Start from Red's start position.
+                // Red start (index 0) is at (col 6, row 13) and moves UP.
+                // No, standard path is Red start at (col 1, row 6) moving RIGHT.
+                // Let's use the provided simplified board coordinates for path from example images
+                // Red arm: (6,1) to (6,5) -> (5,6) to (0,6) -> (0,7) -> (0,8) to (5,8) -> (6,9) to (6,13)
+                // This is for one arm, not the whole track.
+                // For simplicity, this version will use the "standardPath" array and map it.
+                // The definition of "standardPath" above needs 52 cells.
+                // Let's use the one that makes logical sense for start/entry points:
+                const mainTrackCoords = [];
+                // Red area track cells (0-12)
+                mainTrackCoords.push({c:1, r:6}); // 0: Red Start
+                for(let i=1; i<=4; i++) mainTrackCoords.push({c:1+i, r:6}); // 1-4
+                for(let i=0; i<=5; i++) mainTrackCoords.push({c:6, r:5-i}); // 5-10
+                mainTrackCoords.push({c:7, r:0}); // 11: Green Home Entry
+                mainTrackCoords.push({c:8, r:0}); // 12
+                // Green area track cells (13-25)
+                mainTrackCoords.push({c:8, r:1}); // 13: Green Start
+                for(let i=1; i<=4; i++) mainTrackCoords.push({c:8, r:1+i}); // 14-17
+                for(let i=0; i<=5; i++) mainTrackCoords.push({c:9+i, r:6}); // 18-23
+                mainTrackCoords.push({c:14, r:7}); // 24: Yellow Home Entry
+                mainTrackCoords.push({c:14, r:8}); // 25
+                // Yellow area track cells (26-38)
+                mainTrackCoords.push({c:13, r:8}); // 26: Yellow Start
+                for(let i=1; i<=4; i++) mainTrackCoords.push({c:13-i, r:8}); // 27-30
+                for(let i=0; i<=5; i++) mainTrackCoords.push({c:8, r:9+i}); // 31-36
+                mainTrackCoords.push({c:7, r:14}); // 37: Blue Home Entry
+                mainTrackCoords.push({c:6, r:14}); // 38
+                // Blue area track cells (39-51)
+                mainTrackCoords.push({c:6, r:13}); // 39: Blue Start
+                for(let i=1; i<=4; i++) mainTrackCoords.push({c:6, r:13-i}); // 40-43
+                for(let i=0; i<=5; i++) mainTrackCoords.push({c:5-i, r:8}); // 44-49
+                mainTrackCoords.push({c:0, r:7}); // 50: Red Home Entry
+                mainTrackCoords.push({c:0, r:6}); // 51
+
+                mainTrackCoords.forEach((coord, i) => {
+                    let specialClass = '';
+                    if (i === this.config.startTrackMap.red) specialClass = 'red-start';
+                    if (i === this.config.startTrackMap.green) specialClass = 'green-start';
+                    if (i === this.config.startTrackMap.yellow) specialClass = 'yellow-start';
+                    if (i === this.config.startTrackMap.blue) specialClass = 'blue-start';
+                    // Mark safe spots (typically start spots are safe)
+                    // For this demo, only start spots are marked visually.
+                    defs.push({
+                        type: 'track-cell', id: `track-${i}`, trackIndex: i,
+                        gridPos: { col: R(coord.c), row: R(coord.r) },
+                        isStartFor: Object.keys(this.config.startTrackMap).find(color => this.config.startTrackMap[color] === i),
+                        specialClass: specialClass
+                    });
+                });
+                
+                // Home Path Cells (6 per player)
+                const homePathTemplates = {
+                    red:    Array(6).fill(0).map((_,i) => ({ c:1+i, r:7, idx:i })), // Rightwards
+                    green:  Array(6).fill(0).map((_,i) => ({ c:7,   r:1+i, idx:i })), // Downwards
+                    yellow: Array(6).fill(0).map((_,i) => ({ c:13-i,r:7, idx:i })), // Leftwards
+                    blue:   Array(6).fill(0).map((_,i) => ({ c:7,   r:13-i,idx:i })), // Upwards
+                };
+                this.config.colors.forEach(color => {
+                    homePathTemplates[color].forEach(coord => {
+                        defs.push({
+                            type: 'home-path-cell', id: `${color}-home-path-${coord.idx}`, color: color, homePathIndex: coord.idx,
+                            gridPos: { col: R(coord.c), row: R(coord.r) }
+                        });
+                    });
+                });
+
+                // Center Target cells (visual only)
+                defs.push({ type: 'center-target', id: 'center-red', color: 'red', gridPos: { col: R(6), row: R(7), colSpan:1, rowSpan:1}});
+                defs.push({ type: 'center-target', id: 'center-green', color: 'green', gridPos: { col: R(7)+1, row: R(6), colSpan:1, rowSpan:1}}); // R(7)+1 = R(8) for grid
+                defs.push({ type: 'center-target', id: 'center-yellow', color: 'yellow', gridPos: { col: R(8), row: R(7)+1, colSpan:1, rowSpan:1}});
+                defs.push({ type: 'center-target', id: 'center-blue', color: 'blue', gridPos: { col: R(7)-1, row: R(8), colSpan:1, rowSpan:1}});
+
+
+                this.config.boardCellDefinitions = defs;
+            },
+
+            drawBoardCells() {
+                const boardContainer = document.getElementById('board-container');
+                boardContainer.innerHTML = ''; // Clear previous cells
+
+                this.config.boardCellDefinitions.forEach(def => {
+                    const cellDiv = document.createElement('div');
+                    cellDiv.id = def.id;
+                    cellDiv.classList.add('board-cell');
+                    cellDiv.style.gridColumnStart = def.gridPos.col;
+                    cellDiv.style.gridRowStart = def.gridPos.row;
+                    if (def.gridPos.colSpan) cellDiv.style.gridColumnEnd = `span ${def.gridPos.colSpan}`;
+                    if (def.gridPos.rowSpan) cellDiv.style.gridRowEnd = `span ${def.gridPos.rowSpan}`;
+
+                    if (def.type === 'home-area-bg') {
+                        cellDiv.classList.add('home-area-bg', `${def.color}-bg`);
+                    } else if (def.type === 'home-slot') {
+                        cellDiv.classList.add('home-slot');
+                    } else if (def.type === 'track-cell') {
+                        cellDiv.classList.add('track-cell');
+                        if (def.isStartFor) cellDiv.classList.add('start-cell');
+                        if (def.specialClass) cellDiv.classList.add(def.specialClass);
+                        // cellDiv.textContent = def.trackIndex; // For debugging
+                    } else if (def.type === 'home-path-cell') {
+                        cellDiv.classList.add('home-path-cell', `${def.color}-path`);
+                        // cellDiv.textContent = def.homePathIndex; // For debugging
+                    } else if (def.type === 'center-target') {
+                        cellDiv.classList.add('center-target', `${def.color}-target`);
+                        if (def.color === 'red') cellDiv.innerHTML = '&#9650;'; // Up arrow
+                        if (def.color === 'green') cellDiv.innerHTML = '&#9654;'; // Right arrow
+                        if (def.color === 'yellow') cellDiv.innerHTML = '&#9660;'; // Down arrow
+                        if (def.color === 'blue') cellDiv.innerHTML = '&#9664;'; // Left arrow
+                    }
+                    boardContainer.appendChild(cellDiv);
+                });
+            },
+            
+            createPlayersAndPieces() {
+                this.state.players = this.config.colors.map((color, colorIndex) => {
+                    const pieces = [];
+                    for (let i = 0; i < this.config.piecesPerPlayer; i++) {
+                        const pieceId = `piece-${color}-${i}`;
+                        pieces.push({
+                            id: pieceId,
+                            color: color,
+                            status: 'home', // 'home', 'track', 'homepath', 'finished'
+                            position: i, // Home slot index or track/homepath index
+                            element: this.createPieceElement(pieceId, color, i)
+                        });
+                    }
+                    return { color, pieces };
+                });
+                this.placeAllPieces();
+            },
+
+            createPieceElement(id, color, pieceNum) {
+                const pieceElement = document.createElement('div');
+                pieceElement.id = id;
+                pieceElement.classList.add('piece', `${color}-piece`);
+                pieceElement.textContent = pieceNum + 1; // Display 1-4 on pieces
+                document.getElementById('board-container').appendChild(pieceElement);
+                return pieceElement;
+            },
+
+            placePiece(piece) {
+                const cellDef = this.getCellDefinitionForPiece(piece);
+                if (!cellDef) {
+                    console.error("Could not find cell definition for piece:", piece);
+                    return;
+                }
+
+                const targetGridCell = document.getElementById(cellDef.id);
+                if (!targetGridCell) {
+                    console.error("Could not find target grid cell DOM element:", cellDef.id);
+                    return;
+                }
+                
+                // Position piece in the center of its target cell
+                const cellRect = targetGridCell.getBoundingClientRect();
+                const boardRect = document.getElementById('board-container').getBoundingClientRect();
+
+                const pieceSize = this.config.cellSizePx * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--piece-size-factor'));
+
+                // Calculate top-left of the piece so it's centered in the cell
+                const left = (cellRect.left - boardRect.left) + (cellRect.width / 2) - (pieceSize / 2);
+                const top = (cellRect.top - boardRect.top) + (cellRect.height / 2) - (pieceSize / 2);
+
+                piece.element.style.left = `${left}px`;
+                piece.element.style.top = `${top}px`;
+            },
+            
+            getCellDefinitionForPiece(piece) {
+                if (piece.status === 'home') {
+                    return this.config.boardCellDefinitions.find(
+                        def => def.type === 'home-slot' && def.id === `${piece.color}-home-slot-${piece.position}`
+                    );
+                } else if (piece.status === 'track') {
+                    return this.config.boardCellDefinitions.find(
+                        def => def.type === 'track-cell' && def.trackIndex === piece.position
+                    );
+                } else if (piece.status === 'homepath') {
+                     return this.config.boardCellDefinitions.find(
+                        def => def.type === 'home-path-cell' && def.color === piece.color && def.homePathIndex === piece.position
+                    );
+                } else if (piece.status === 'finished') { // Visually same as last homepath spot
+                     return this.config.boardCellDefinitions.find(
+                        def => def.type === 'home-path-cell' && def.color === piece.color && def.homePathIndex === (this.config.homeStretchLength -1)
+                    );
+                }
+                return null;
+            },
+
+            placeAllPieces() {
+                this.state.players.forEach(player => {
+                    player.pieces.forEach(piece => this.placePiece(piece));
+                });
+            },
+
+            updateUI() {
+                const currentPlayer = this.state.players[this.state.currentPlayerIndex];
+                document.getElementById('turn-indicator').textContent = `Current Turn: ${currentPlayer.color.toUpperCase()}`;
+                document.getElementById('turn-indicator').style.color = `var(--color-${currentPlayer.color})`;
+
+                document.getElementById('dice-result').textContent = this.state.diceValue ? `Dice: ${this.state.diceValue}` : 'Dice: -';
+                document.getElementById('message-area').textContent = this.state.message;
+                document.getElementById('roll-dice-btn').disabled = this.state.gamePhase !== 'ROLLING';
+
+                // Update piece highlights and interactivity
+                this.state.players.forEach(player => {
+                    player.pieces.forEach(p => {
+                        p.element.classList.remove('highlight', 'not-movable');
+                        if (this.state.gamePhase === 'PIECE_SELECTION' && p.color === currentPlayer.color) {
+                            if (this.canPotentiallyMove(p, currentPlayer, this.state.diceValue)) {
+                                p.element.classList.add('highlight');
+                            } else {
+                                p.element.classList.add('not-movable');
+                            }
+                        }
+                    });
+                });
+            },
+
+            rollDice() {
+                if (this.state.gamePhase !== 'ROLLING') return;
+                this.state.diceValue = Math.floor(Math.random() * 6) + 1;
+                this.state.message = '';
+                this.state.gamePhase = 'PIECE_SELECTION';
+                
+                const currentPlayer = this.state.players[this.state.currentPlayerIndex];
+                const movablePieces = this.getMovablePieces(currentPlayer, this.state.diceValue);
+
+                if (movablePieces.length === 0) {
+                    this.state.message = `No valid moves for ${this.state.diceValue}.`;
+                    setTimeout(() => this.nextTurn(), 1500);
+                } else {
+                    this.state.message = `Rolled ${this.state.diceValue}. Select a piece.`;
+                }
+                this.updateUI();
+            },
+
+            handlePieceClick(pieceId) {
+                if (this.state.gamePhase !== 'PIECE_SELECTION') return;
+
+                const currentPlayer = this.state.players[this.state.currentPlayerIndex];
+                const piece = currentPlayer.pieces.find(p => p.id === pieceId);
+
+                if (!piece || piece.color !== currentPlayer.color) return; // Not current player's piece
+
+                if (!this.canPotentiallyMove(piece, currentPlayer, this.state.diceValue)) {
+                     this.state.message = "This piece cannot make that move.";
+                     this.updateUI();
+                     return;
+                }
+
+                // Try to move the piece
+                if (piece.status === 'home') {
+                    if (this.state.diceValue === 6) {
+                        piece.status = 'track';
+                        piece.position = this.config.startTrackMap[piece.color];
+                        this.state.message = `${piece.color} piece out of home!`;
+                        // Standard Ludo gives another turn for 6, but spec says "auto passes turn".
+                        // For simplicity as per spec, we'll pass the turn.
+                        this.placePiece(piece);
+                        this.nextTurnAfterMove();
+                    } else {
+                        // This should not happen if canPotentiallyMove is correct
+                        this.state.message = "Need a 6 to move from home.";
+                    }
+                } else if (piece.status === 'track' || piece.status === 'homepath') {
+                    const moveResult = this.calculateMove(piece, this.state.diceValue);
+                    if (moveResult.valid) {
+                        piece.status = moveResult.newStatus;
+                        piece.position = moveResult.newPosition;
+                        this.state.message = `${piece.color} piece moved.`;
+                        if (piece.status === 'finished') {
+                            this.state.message = `${piece.color} piece reached home!`;
+                        }
+                        this.placePiece(piece);
+                        this.nextTurnAfterMove();
+                    } else {
+                        this.state.message = moveResult.reason || "Invalid move.";
+                    }
+                }
+                this.updateUI();
+            },
+            
+            nextTurnAfterMove() {
+                 // Spec: "After a player's move, the turn automatically passes to the next color."
+                 // No extra turn for rolling 6 or capturing for this basic version.
+                 this.nextTurn();
+            },
+
+            canPotentiallyMove(piece, player, diceValue) {
+                if (piece.status === 'finished') return false;
+                if (piece.status === 'home') {
+                    return diceValue === 6;
+                }
+                // For track or homepath pieces, check if calculateMove is valid
+                const moveResult = this.calculateMove(piece, diceValue);
+                return moveResult.valid;
+            },
+
+            getMovablePieces(player, diceValue) {
+                return player.pieces.filter(p => this.canPotentiallyMove(p, player, diceValue));
+            },
+            
+            calculateMove(piece, steps) {
+                let currentPos = piece.position;
+                let currentStatus = piece.status;
+                let newPos = currentPos;
+                let newStatus = currentStatus;
+
+                const homeEntry = this.config.homeEntryTrackMap[piece.color];
+                const homePathLength = this.config.homeStretchLength;
+
+                for (let i = 0; i < steps; i++) {
+                    if (newStatus === 'track') {
+                        if (currentPos === homeEntry) { // Current step lands on the cell *before* home path
+                            newStatus = 'homepath';
+                            newPos = 0; // Enter home path at its first spot
+                        } else {
+                            newPos = (currentPos + 1) % this.config.trackLength;
+                        }
+                    } else if (newStatus === 'homepath') {
+                        newPos++;
+                    }
+                    currentPos = newPos; // Update currentPos for next iteration
+                }
+
+                if (newStatus === 'homepath') {
+                    if (newPos >= homePathLength) {
+                        return { valid: false, reason: "Move overshoots home." };
+                    }
+                    if (newPos === homePathLength - 1) { // Reached the final spot
+                        newStatus = 'finished';
+                    }
+                }
+                return { valid: true, newStatus, newPosition: newPos };
+            },
+
+            nextTurn() {
+                // Check for win condition (all pieces of a player are 'finished')
+                const winner = this.state.players.find(p => p.pieces.every(pc => pc.status === 'finished'));
+                if (winner) {
+                    this.state.message = `${winner.color.toUpperCase()} WINS THE GAME!`;
+                    this.state.gamePhase = 'GAMEOVER';
+                    this.state.diceValue = null;
+                    this.updateUI();
+                    document.getElementById('roll-dice-btn').disabled = true;
+                    return;
+                }
+
+                this.state.currentPlayerIndex = (this.state.currentPlayerIndex + 1) % this.config.colors.length;
+                this.state.diceValue = null;
+                this.state.gamePhase = 'ROLLING';
+                if (this.state.message.startsWith("No valid moves for") || this.state.message.startsWith(this.config.colors[this.state.currentPlayerIndex])) {
+                    // don't clear if it was a "no moves" message from previous player
+                } else {
+                     this.state.message = ''; // Clear previous move messages
+                }
+                this.updateUI();
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => LudoGame.init());
+        // Recalculate cell size on resize for piece positioning (simple approach)
+        window.addEventListener('resize', () => {
+            const rootStyle = getComputedStyle(document.documentElement);
+            const cellSizeStr = rootStyle.getPropertyValue('--cell-size').trim();
+            if (cellSizeStr.endsWith('px')) {
+                LudoGame.config.cellSizePx = parseFloat(cellSizeStr);
+            } else if (cellSizeStr.endsWith('vmin')) {
+                const val = parseFloat(cellSizeStr);
+                LudoGame.config.cellSizePx = (val / 100) * Math.min(window.innerWidth, window.innerHeight);
+            }
+             // A more robust solution would re-trigger piece placement or use relative units for pieces too
+            LudoGame.placeAllPieces();
+        });
+
+    </script>
+</body>
+</html>
