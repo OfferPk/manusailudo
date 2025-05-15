@@ -1566,6 +1566,38 @@ dice[playerColor]	Track dice per player (optional)
 rollDice()	Generate dice roll
 getMovableTokens()	Check which tokens can move
 nextPlayerTurn()	Change the active player
+what are safe paths in ludo like 8 ,26 ,34, 
+
+
+ChatGPT said:
+In Ludo, safe zones (or safe tiles) are special positions on the board where tokens cannot be captured by other players. These spots usually align with each player's entry points into the main path or are marked by a symbol like a star or circle on physical boards.
+
+Here are the typical safe tiles (standard numbering, assuming 52 main tiles):
+
+✅ Common Safe Spots in Ludo:
+Tile Number	Description
+1	Red starting tile (entry point)
+9	Yellow starting tile (entry point)
+14	Safe tile between Yellow and Green
+22	Green starting tile (entry point)
+27	Safe tile between Green and Blue
+35	Blue starting tile (entry point)
+40	Safe tile between Blue and Red
+48	Yellow safe tile (before Red start again)
+
+Sometimes the safe tiles are at:
+
+Copy
+Edit
+1, 9, 14, 22, 27, 35, 40, 48
+🎯 Key Rules About Safe Zones:
+Multiple tokens from any team can occupy a safe tile.
+
+A token cannot be killed on a safe tile.
+
+These safe tiles often match the player's starting squares or designated "star" icons on physical boards.
+
+Some Ludo versions also treat the home columns (final path to the center) as safe zones.
 
 
 
