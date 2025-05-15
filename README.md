@@ -95,16 +95,12 @@ Edit
  7, 8, 9, 10, 11, 12]
 ➡️ Blue home path:
 
-csharp
-Copy
-Edit
+
 [56, 57, 58, 59, 60, 61]
 🟢 Green Player Path
 Start at index: 26
 
-csharp
-Copy
-Edit
+
 [26, 27, 28, 29, 30, 31,
  32, 33, 34, 35, 36, 37,
  38, 39, 40, 41, 42, 43,
@@ -115,16 +111,12 @@ Edit
  19, 20, 21, 22, 23, 24, 25]
 ➡️ Green home path:
 
-csharp
-Copy
-Edit
+
 [62, 63, 64, 65, 66, 67]
 🟡 Yellow Player Path
 Start at index: 39
 
-csharp
-Copy
-Edit
+
 [39, 40, 41, 42, 43, 44,
  45, 46, 47, 48, 49,
  0, 1, 2, 3, 4, 5, 6,
@@ -135,9 +127,7 @@ Edit
  31, 32, 33, 34, 35, 36, 37, 38]
 ➡️ Yellow home path:
 
-csharp
-Copy
-Edit
+
 [68, 69, 70, 71, 72, 73]
 🩷 Pink Player Path (5th player)
 Assumes extended board support.
@@ -145,18 +135,13 @@ Start index: 52 (custom)
 ➡️ Same rotation logic.
 ➡️ Home path:
 
-csharp
-Copy
-Edit
+
 [74, 75, 76, 77, 78, 79]
 ⚫ Black Player Path (6th player)
 Start index: 65
 ➡️ Circular path adjusted accordingly.
 ➡️ Home path:
 
-csharp
-Copy
-Edit
 [80, 81, 82, 83, 84, 85]
 🔁 Summary
 Each player:
@@ -173,9 +158,7 @@ Here’s a full coordinate map for a standard Ludo board, rendered on a 15×15 g
 🎯 Main Path Coordinates (52 tiles):
 These are the x, y canvas positions for token movement around the full board (clockwise, starting from Red's start tile):
 
-scss
-Copy
-Edit
+
 (40, 240), (80, 240), (120, 240), (160, 240), (200, 240), (240, 240),
 (240, 200), (240, 160), (240, 120), (240, 80), (240, 40), (240, 0),
 (280, 0), (320, 0), (320, 40), (320, 80), (320, 120), (320, 160),
@@ -188,9 +171,6 @@ Edit
 🏠 Red Player Home Path to Center:
 Coordinates from the home column to the center (final tile):
 
-scss
-Copy
-Edit
 (40, 280), (80, 280), (120, 280), (160, 280), (200, 280), (240, 280)
 📐 Canvas Info:
 Cell Size: 40 pixels
@@ -602,8 +582,7 @@ const COLOR_HOME_PATH = {
 };
 🔁 5. Build Player Token Path
 javascript
-Copy
-Edit
+
 function getPlayerPath(color) {
   const start = COLOR_START_INDEX[color];
   const beforeWrap = COMMON_PATH.slice(start);
@@ -620,8 +599,7 @@ const redPath = getPlayerPath("red");
 Once your full path array is built, you'll want to map each path index to a coordinate (x, y) on your canvas:
 
 javascript
-Copy
-Edit
+
 const PATH_COORDS = {
   0: { x: 100, y: 400 },
   1: { x: 100, y: 360 },
@@ -630,8 +608,7 @@ const PATH_COORDS = {
 Then access them using:
 
 javascript
-Copy
-Edit
+
 const pos = PATH_COORDS[playerPath[token.position]];
 ✅ Summary
 Path Type	Length	Purpose
@@ -651,9 +628,7 @@ Here’s a simple approach to create a 3D dice rolling animation:
 1. Create a 3D Dice Cube with CSS
 Use a cube made from 6 faces with numbers 1-6.
 
-html
-Copy
-Edit
+
 <div id="dice-container">
   <div id="dice">
     <div class="face one">1</div>
@@ -707,9 +682,7 @@ Edit
 3. JavaScript to Rotate Dice
 You animate the dice by changing the transform property of the #dice div to simulate rolling and then stop it on the rolled number.
 
-js
-Copy
-Edit
+
 const dice = document.getElementById('dice');
 
 const rotations = {
@@ -832,9 +805,7 @@ function rollDice() {
   // dice rolling logic here...
 }
 Example: Combined — delay then increment numerator
-js
-Copy
-Edit
+
 let numerator = 0;
 
 async function incrementWithDelay() {
@@ -1064,8 +1035,7 @@ Update game state
 🧠 Core Concepts
 1. Variables You Need
 js
-Copy
-Edit
+
 let currentPlayerIndex = 0;
 let players = ["red", "blue", "green", "yellow"]; // add pink, black if 6 players
 let diceResult = 0;
@@ -1075,8 +1045,7 @@ let playerPaths = {}; // individual entry-to-home paths
 let gameStarted = true;
 2. Game Manager Class (Basic Template)
 js
-Copy
-Edit
+
 class GameManager {
   constructor(players) {
     this.players = players;
@@ -1139,8 +1108,7 @@ let redToken1 = {
 };
 4. Draw Token Function (Canvas or HTML)
 js
-Copy
-Edit
+
 function drawToken(token) {
   const ctx = document.getElementById('canvas').getContext('2d');
   ctx.fillStyle = token.color;
@@ -1192,8 +1160,7 @@ Can only be rolled on player's turn
 🧱 STEP-BY-STEP: Create Dice Prefabs
 1. 🧩 HTML Structure — Dice Container for Each Player
 html
-Copy
-Edit
+
 <div class="dice-container">
   <div class="dice" id="red-dice"></div>
   <div class="dice" id="blue-dice"></div>
@@ -1363,8 +1330,7 @@ You can override styles in sub-classes like .profile, .dice-zone etc.
 ✅ 3. Use Modular JavaScript for Functionality
 📜 Modular Function Setup
 js
-Copy
-Edit
+
 function setupPlayerProfile() {
   const profile = document.getElementById("player-profile");
   profile.innerHTML = `<h3>Welcome Back!</h3><p>Player ID: 937 | Level: 13</p>`;
@@ -1455,8 +1421,7 @@ Each player typically has 4 tokens. You can store these in an object or class. H
 
 🧩 Example: Define All Players and Their Pieces
 js
-Copy
-Edit
+
 const players = {
   red: {
     name: "Red Player",
@@ -1500,8 +1465,7 @@ You can assign each player a separate dice or share one dice variable and use pl
 
 🎲 Shared Dice Variable Example:
 js
-Copy
-Edit
+
 let currentDiceValue = 0;
 🎲 Per-Player Dice (Optional):
 js
@@ -1518,9 +1482,7 @@ const dice = {
 ✅ 3. Rolling Dice Function
 Here’s how you roll the dice and store its value:
 
-js
-Copy
-Edit
+
 function rollDice(playerColor) {
   const value = Math.floor(Math.random() * 6 + 1);
   currentDiceValue = value;  // If using shared dice
@@ -1548,8 +1510,7 @@ function getMovableTokens(player) {
 }
 ✅ 5. Turn Handling (Simplified)
 js
-Copy
-Edit
+
 let currentPlayer = "red"; // Start with red
 
 function nextPlayerTurn() {
@@ -1587,8 +1548,7 @@ Tile Number	Description
 
 Sometimes the safe tiles are at:
 
-Copy
-Edit
+
 1, 9, 14, 22, 27, 35, 40, 48
 🎯 Key Rules About Safe Zones:
 Multiple tokens from any team can occupy a safe tile.
