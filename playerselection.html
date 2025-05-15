@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ludo Player Setup</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            line-height: 1.6;
+            padding: 15px;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top in case content is taller than viewport */
+            min-height: 100vh; /* Ensure body takes at least full viewport height */
+        }
+        .app-container {
+            width: 100%;
+            max-width: 500px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .controls {
+            margin-bottom: 25px;
+        }
+        .controls h2 {
+            font-size: 1.6em; /* Slightly larger title */
+            margin-bottom: 20px; /* Increased margin */
+            color: #333;
+            text-align: center;
+        }
+        .control-group {
+            margin-bottom: 20px; /* Increased margin */
+        }
+        .control-group p { /* Title for radio/checkbox group */
+            font-weight: bold;
+            margin-bottom: 10px; /* Increased margin */
+            font-size: 1.1em; /* Slightly larger group title */
+        }
+        .controls label { /* Styling for labels wrapping inputs */
+            display: block;
+            margin-bottom: 10px;
+            padding: 12px 15px; /* Increased padding */
+            background-color: #e9ecef;
+            border: 1px solid #ced4da; /* Subtle border */
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+            font-size: 1em; /* Standard font size for labels */
+        }
+        .controls label:hover {
+            background-color: #dee2e6;
+            border-color: #adb5bd;
+        }
+        .controls label:last-child {
+            margin-bottom: 0;
+        }
+        .controls input[type="radio"],
+        .controls input[type="checkbox"] {
+            margin-right: 10px; /* Increased spacing */
+            vertical-align: middle;
+            transform: scale(1.2); /* Slightly larger inputs */
+        }
+        .ludo-board-container {
+            margin-bottom: 25px;
+        }
+        .ludo-board {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px; /* Slightly larger gap */
+            max-width: 380px; /* Adjusted max size */
+            margin: 0 auto;
+        }
+        .home-area {
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1.1em, 5vmin, 1.8em);
+            font-weight: bold;
+            border: 3px solid transparent;
+            transition: background-color 0.3s ease, color 0.3s ease, opacity 0.3s ease, border-color 0.3s ease;
+            border-radius: 8px;
+            text-align: center;
+            padding: 5px;
+            overflow: hidden;
+            word-break: break-word;
+        }
+        .home-area.active-style {
+            border-color: #212529; /* Darker border for active */
+            opacity: 1;
+        }
+        .home-area.inactive-style {
+            border-color: #ced4da; /* Lighter border for inactive */
+            opacity: 0.45; /* More faded */
+        }
+        .summary {
+            margin-top: 25px; /* Increased margin */
+            padding: 18px; /* Increased padding */
+            background-color: #f8f9fa; /* Lighter summary background */
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: 500;
+            color: #212529; /* Darker summary text */
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            .app-container { padding: 15px; }
+            .controls h2 { font-size: 1.4em; }
+            .summary { font-size: 1em; padding: 12px; }
+            .ludo-board { max-width: 100%; gap: 8px; }
+            .home-area { font-size: clamp(1em, 4.5vmin, 1.6em); }
+            .controls input[type="radio"],
+            .controls input[type="checkbox"] {
+                transform: scale(1.1); /* Slightly smaller on mobile */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="controls">
+            <h2>Ludo Game Setup</h2>
+            <div class="control-group">
+                <p>Number of Players:</p>
+                <label><input type="radio" name="numPlayers" value="2" checked> 2 Players</label>
+                <label><input type="radio" name="numPlayers" value="3"> 3 Players</label>
+                <label><input type="radio" name="numPlayers" value="4"> 4 Players</label>
+            </div>
+            <div class="control-group">
+                <p>AI Players:</p>
+                <label><input type="checkbox" id="computerToggleCheckbox"> Enable Computer Players</label>
+            </div>
+        </div>
+
+        <div class="ludo-board-container">
+            <div class="ludo-board">
+                <div class="home-area" id="home-red" data-player="red"></div>
+                <div class="home-area" id="home-blue" data-player="blue"></div>
+                <div class="home-area" id="home-green" data-player="green"></div>
+                <div class="home-area" id="home-yellow" data-player="yellow"></div>
+            </div>
+        </div>
+
+        <div class="summary">
+            <p id="summary-text">Loading configuration...</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const PLAYERS_DATA = [
+                { id: 'red', name: 'Red', color: '#d9534f', textColor: 'white' },
+                { id: 'blue', name: 'Blue', color: '#0275d8', textColor: 'white' },
+                { id: 'green', name: 'Green', color: '#5cb85c', textColor: 'white' },
+                { id: 'yellow', name: 'Yellow', color: '#f0ad4e', textColor: 'black' }
+            ];
+
+            const numPlayerRadios = document.querySelectorAll('input[name="numPlayers"]');
+            const computerToggleCheckbox = document.getElementById('computerToggleCheckbox');
+            const summaryTextElement = document.getElementById('summary-text');
+            
+            const homeAreaDOMElements = {
+                red: document.getElementById('home-red'),
+                blue: document.getElementById('home-blue'),
+                green: document.getElementById('home-green'),
+                yellow: document.getElementById('home-yellow')
+            };
+
+            // Defines which player colors are active for a given number of players
+            // For 2 players, Blue and Green are chosen to match the example output style.
+            const ACTIVE_PLAYER_CONFIGS = {
+                2: ['blue', 'green'], 
+                3: ['red', 'blue', 'green'], 
+                4: ['red', 'blue', 'green', 'yellow']
+            };
+
+            function updateGameDisplay() {
+                let selectedNumPlayers = 0;
+                for (const radio of numPlayerRadios) {
+                    if (radio.checked) {
+                        selectedNumPlayers = parseInt(radio.value);
+                        break;
+                    }
+                }
+                // Fallback, though one radio is 'checked' in HTML so this path is unlikely.
+                if (selectedNumPlayers === 0 && numPlayerRadios.length > 0) {
+                    selectedNumPlayers = parseInt(numPlayerRadios[0].value); 
+                }
+
+                const areComputerPlayersEnabled = computerToggleCheckbox.checked;
+                const activePlayerIds = ACTIVE_PLAYER_CONFIGS[selectedNumPlayers] || [];
+                
+                PLAYERS_DATA.forEach(player => {
+                    const homeAreaElement = homeAreaDOMElements[player.id];
+                    if (!homeAreaElement) return; // Safety check
+
+                    if (activePlayerIds.includes(player.id)) {
+                        homeAreaElement.classList.remove('inactive-style');
+                        homeAreaElement.classList.add('active-style');
+                        homeAreaElement.style.backgroundColor = player.color;
+                        homeAreaElement.style.color = player.textColor;
+                        homeAreaElement.textContent = player.name;
+                    } else {
+                        homeAreaElement.classList.remove('active-style');
+                        homeAreaElement.classList.add('inactive-style');
+                        homeAreaElement.style.backgroundColor = '#e9ecef'; // Neutral inactive background
+                        homeAreaElement.style.color = '#6c757d';      // Neutral inactive text color
+                        homeAreaElement.textContent = ''; // No text for inactive players
+                    }
+                });
+                
+                // Generate summary string
+                // Ensure names in summary are in the order defined by ACTIVE_PLAYER_CONFIGS
+                const orderedActivePlayerNames = activePlayerIds.map(id => {
+                    const playerObj = PLAYERS_DATA.find(p => p.id === id);
+                    return playerObj ? playerObj.name : '';
+                }).filter(name => name !== ''); // Filter out any empty names
+
+                let playerNamesString;
+                if (orderedActivePlayerNames.length === 0) {
+                    playerNamesString = "None";
+                } else if (orderedActivePlayerNames.length === 1) {
+                    playerNamesString = orderedActivePlayerNames[0];
+                } else if (orderedActivePlayerNames.length === 2) {
+                    playerNamesString = orderedActivePlayerNames.join(" and ");
+                } else { // 3 or more players
+                    playerNamesString = orderedActivePlayerNames.join(", ");
+                }
+                
+                const computerSuffix = areComputerPlayersEnabled && orderedActivePlayerNames.length > 0 ? " (Computer)" : "";
+                summaryTextElement.textContent = `${selectedNumPlayers} Players: ${playerNamesString}${computerSuffix}`;
+            }
+
+            numPlayerRadios.forEach(radio => radio.addEventListener('change', updateGameDisplay));
+            computerToggleCheckbox.addEventListener('change', updateGameDisplay);
+
+            // Initial display update on page load
+            updateGameDisplay();
+        });
+    </script>
+</body>
+</html>
