@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-T-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Ludo Piece Movement</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            color: #333;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        #ludo-app-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+
+        #controls-area {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .color-selector label {
+            margin-right: 5px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .color-selector input[type="radio"] {
+            display: none;
+        }
+        .color-selector input[type="radio"]:checked + span {
+            font-weight: bold;
+            box-shadow: 0 0 5px currentColor;
+        }
+        #red-option + span { color: white; background-color: #FF5733; border-color: #FF5733; }
+        #green-option + span { color: white; background-color: #33FF57; border-color: #33FF57; }
+        #yellow-option + span { color: #333; background-color: #FFFF33; border-color: #FFFF33; }
+        #blue-option + span { color: white; background-color: #3357FF; border-color: #3357FF; }
+
+
+        #dice-roll-button {
+            padding: 10px 15px;
+            font-size: 1em;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #dice-roll-button:disabled {
+            background-color: #ccc;
+        }
+
+        #dice-result, #move-info {
+            font-size: 1em;
+            padding: 10px;
+            background-color: #e9e9e9;
+            border-radius: 4px;
+        }
+
+        #ludo-board-container {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            grid-template-rows: repeat(15, 1fr);
+            width: clamp(300px, 90vmin, 600px); /* Responsive size */
+            height: clamp(300px, 90vmin, 600px);
+            border: 3px solid #333;
+            position: relative; /* For absolute positioning of path markers if needed */
+            background-color: #fff;
+        }
+
+        .cell {
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.6em; /* For cell IDs, if shown */
+            position: relative; /* For pawn positioning */
+        }
+        
+        .yard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            padding: 5%;
+            box-sizing: border-box;
+        }
+        .pawn-slot {
+            border: 1px dashed #aaa;
+            border-radius: 50%;
+            margin: 8%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0,0,0,0.05);
+        }
+
+        /* Yard positions */
+        .red-yard-area    { grid-area: 1 / 1 / 7 / 7; background-color: #FFC0CB; } /* Light Red */
+        .green-yard-area  { grid-area: 1 / 10 / 7 / 16; background-color: #90EE90; } /* Light Green */
+        .yellow-yard-area { grid-area: 10 / 10 / 16 / 16; background-color: #FFFFE0; } /* Light Yellow */
+        .blue-yard-area   { grid-area: 10 / 1 / 16 / 7; background-color: #ADD8E6; } /* Light Blue */
+
+        /* Path cell colors */
+        .red-path    { background-color: #FF7F7F; }
+        .green-path  { background-color: #66FF66; }
+        .yellow-path { background-color: #FFFF66; }
+        .blue-path   { background-color: #6666FF; }
+        .safe-spot::before {
+            content: "★";
+            font-size: 1.5em; /* Adjust as needed */
+            color: #888;
+            position: absolute;
+        }
+
+
+        .pawn {
+            width: 70%;
+            height: 70%;
+            border-radius: 50%;
+            border: 2px solid #333;
+            cursor: grab;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 1px black;
+            box-sizing: border-box;
+        }
+        .pawn.red    { background-color: #FF5733; }
+        .pawn.green  { background-color: #33FF57; }
+        .pawn.yellow { background-color: #FFFF33; color: #333; text-shadow: 1px 1px 1px #aaa;}
+        .pawn.blue   { background-color: #3357FF; }
+        .pawn.movable {
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 5px rgba(0,0,0,0.3); }
+            50% { transform: scale(1.1); box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+            100% { transform: scale(1); box-shadow: 0 0 5px rgba(0,0,0,0.3); }
+        }
+
+        .center-goal {
+            grid-area: 7 / 7 / 10 / 10;
+            background: repeating-linear-gradient(
+                45deg,
+                #FF5733, #FF5733 10px,
+                #33FF57 10px, #33FF57 20px,
+                #FFFF33 20px, #FFFF33 30px,
+                #3357FF 30px, #3357FF 40px
+            );
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 2px black;
+        }
+
+        .path-highlight {
+            /* box-shadow: inset 0 0 0 3px black; */
+            position: relative;
+        }
+        .path-highlight::after {
+            content: '●';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1em; /* Adjust based on cell size */
+            color: rgba(0, 0, 0, 0.5);
+            pointer-events: none; /* So it doesn't interfere with clicks */
+            z-index: 1000; /* Ensure it's visible */
+        }
+
+
+        /* Specific cell styling for paths will be applied by JS */
+        /* Example: .cell[id="cell-6-1"] { background-color: lightpink; } */
+
+        @media (max-width: 600px) {
+            #controls-area {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            .color-selector {
+                display: flex;
+                justify-content: space-around;
+            }
+            .color-selector label { margin: 5px; }
+            .pawn { font-size: 0.8em; } /* Adjust pawn text if needed for smaller pawns */
+        }
+
+    </style>
+</head>
+<body>
+    <div id="ludo-app-container">
+        <div id="controls-area">
+            <div class="color-selector">
+                <label for="red-option"><input type="radio" name="playerColor" value="red" id="red-option"><span>Red</span></label>
+                <label for="green-option"><input type="radio" name="playerColor" value="green" id="green-option"><span>Green</span></label>
+                <label for="yellow-option"><input type="radio" name="playerColor" value="yellow" id="yellow-option"><span>Yellow</span></label>
+                <label for="blue-option"><input type="radio" name="playerColor" value="blue" id="blue-option"><span>Blue</span></label>
+            </div>
+            <button id="dice-roll-button" disabled>Roll Dice</button>
+            <div id="dice-result">Dice: -</div>
+            <div id="move-info">Select a color to start.</div>
+        </div>
+
+        <div id="ludo-board-container">
+            <!-- Cells will be generated by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        const LUDO_BOARD = document.getElementById('ludo-board-container');
+        const DICE_ROLL_BUTTON = document.getElementById('dice-roll-button');
+        const DICE_RESULT_DISPLAY = document.getElementById('dice-result');
+        const MOVE_INFO_DISPLAY = document.getElementById('move-info');
+        const COLOR_SELECTOR_RADIOS = document.querySelectorAll('input[name="playerColor"]');
+
+        const COLORS = ['red', 'green', 'yellow', 'blue'];
+        const PAWNS_PER_COLOR = 4; // Standard Ludo, but app will use 1 for simplicity of learning
+                                   // Update: Spec says 4 pawns, so let's use 4.
+
+        const BOARD_SIZE = 15; // 15x15 grid
+
+        let gameState = {
+            activeColor: null,
+            diceValue: 0,
+            selectedPawnId: null,
+            isAwaitingPieceSelection: false,
+        };
+
+        let pawnsData = {}; // { 'red-0': { id: 'red-0', color: 'red', element: DOM_ELEMENT, currentCellId: 'red-yard-slot-0', pathIndex: -1, inYard: true, homeStretch: false, hasReachedHome: false }, ... }
+        let cellElements = {}; // { 'cell-row-col': DOM_ELEMENT, ... }
+        let playerPaths = { red: [], green: [], yellow: [], blue: [] };
+
+        // Path Definitions (0-indexed grid)
+        // Main path cells (52 total) - clockwise
+        const MAIN_PATH_COORDS = [
+            // Red arm leading out
+            {r:6, c:1}, {r:6, c:2}, {r:6, c:3}, {r:6, c:4}, {r:6, c:5},
+            {r:5, c:6}, {r:4, c:6}, {r:3, c:6}, {r:2, c:6}, {r:1, c:6}, {r:0, c:6}, // Up to Green's entry side
+            {r:0, c:7}, // Top-center turn
+            {r:0, c:8}, {r:1, c:8}, {r:2, c:8}, {r:3, c:8}, {r:4, c:8}, {r:5, c:8}, // Down Green's arm
+            {r:6, c:9}, {r:6, c:10}, {r:6, c:11}, {r:6, c:12}, {r:6, c:13}, {r:6, c:14}, // Right to Yellow's entry side
+            {r:7, c:14}, // Mid-right turn
+            {r:8, c:14}, {r:8, c:13}, {r:8, c:12}, {r:8, c:11}, {r:8, c:10}, {r:8, c:9}, // Left Yellow's arm
+            {r:9, c:8}, {r:10, c:8}, {r:11, c:8}, {r:12, c:8}, {r:13, c:8}, {r:14, c:8}, // Down to Blue's entry side
+            {r:14, c:7}, // Bottom-center turn
+            {r:14, c:6}, {r:13, c:6}, {r:12, c:6}, {r:11, c:6}, {r:10, c:6}, {r:9, c:6}, // Up Blue's arm
+            {r:8, c:5}, {r:8, c:4}, {r:8, c:3}, {r:8, c:2}, {r:8, c:1}, {r:8, c:0}, // Left to Red's entry side
+            {r:7, c:0}  // Mid-left turn (completes loop before Red's entry)
+        ];
+
+        // Home path cells (6 per color)
+        const HOME_PATHS_COORDS = {
+            red:    [{r:7, c:1}, {r:7, c:2}, {r:7, c:3}, {r:7, c:4}, {r:7, c:5}, {r:7, c:6}],
+            green:  [{r:1, c:7}, {r:2, c:7}, {r:3, c:7}, {r:4, c:7}, {r:5, c:7}, {r:6, c:7}],
+            yellow: [{r:7, c:13}, {r:7, c:12}, {r:7, c:11}, {r:7, c:10}, {r:7, c:9}, {r:7, c:8}],
+            blue:   [{r:13, c:7}, {r:12, c:7}, {r:11, c:7}, {r:10, c:7}, {r:9, c:7}, {r:8, c:7}]
+        };
+
+        // Entry points on the main path for each color
+        const ENTRY_POINTS_MAIN_PATH_INDEX = {
+            red: 0,    // MAIN_PATH_COORDS[0] is {r:6, c:1}
+            green: 13, // MAIN_PATH_COORDS[13] is {r:0, c:8}
+            yellow: 26, // MAIN_PATH_COORDS[26] is {r:8, c:13}
+            blue: 39  // MAIN_PATH_COORDS[39] is {r:14, c:6}
+        };
+        
+        // Cell ID before entering home stretch
+        const PRE_HOME_CELL_MAIN_PATH_INDEX = {
+            red: 50, // MAIN_PATH_COORDS[50] is {r:8, c:0}, next for red is {r:7,c:0} then home
+            green: 11,
+            yellow: 24,
+            blue: 37
+        };
+
+
+        function getCellId(r, c) { return `cell-${r}-${c}`; }
+
+        function createBoard() {
+            LUDO_BOARD.innerHTML = ''; // Clear previous board
+            cellElements = {};
+
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.id = getCellId(r, c);
+                    // cell.textContent = `${r},${c}`; // Optional: for debugging
+                    LUDO_BOARD.appendChild(cell);
+                    cellElements[cell.id] = cell;
+                }
+            }
+
+            // Style Yard Areas (these are containers, not individual cells)
+            const redYard = document.createElement('div');
+            redYard.className = 'yard red-yard-area';
+            LUDO_BOARD.appendChild(redYard);
+            const greenYard = document.createElement('div');
+            greenYard.className = 'yard green-yard-area';
+            LUDO_BOARD.appendChild(greenYard);
+            const yellowYard = document.createElement('div');
+            yellowYard.className = 'yard yellow-yard-area';
+            LUDO_BOARD.appendChild(yellowYard);
+            const blueYard = document.createElement('div');
+            blueYard.className = 'yard blue-yard-area';
+            LUDO_BOARD.appendChild(blueYard);
+
+            // Create pawn slots in yards
+            const YARD_SLOT_COORDS = { // r, c within the 6x6 yard block
+                red: [{r:1,c:1},{r:1,c:4},{r:4,c:1},{r:4,c:4}],
+                green: [{r:1,c:10},{r:1,c:13},{r:4,c:10},{r:4,c:13}],
+                yellow: [{r:10,c:10},{r:10,c:13},{r:13,c:10},{r:13,c:13}],
+                blue: [{r:10,c:1},{r:10,c:4},{r:13,c:1},{r:13,c:4}],
+            };
+
+            COLORS.forEach(color => {
+                const yardContainer = document.querySelector(`.${color}-yard-area`);
+                YARD_SLOT_COORDS[color].forEach((coord, i) => {
+                    const slot = document.createElement('div');
+                    slot.classList.add('pawn-slot');
+                    slot.id = `${color}-yard-slot-${i}`;
+                    cellElements[slot.id] = slot; // Store slot ref
+                    // Position slot inside its yard cell (e.g. cell-1-1 for red)
+                    // Or, append to yardContainer which is already gridded
+                    yardContainer.appendChild(slot);
+                });
+            });
+
+
+            // Style Path Cells
+            MAIN_PATH_COORDS.forEach((coord, index) => {
+                const cell = cellElements[getCellId(coord.r, coord.c)];
+                if (cell) {
+                    // General path styling, can be overridden by specific color entry/home
+                    // Example safe spots (Ludo specific, not in spec, but common)
+                    if ([0, 8, 13, 21, 26, 34, 39, 47].includes(index)) { // Example safe spots
+                        cell.classList.add('safe-spot');
+                    }
+                }
+            });
+            
+            // Color specific entry points and home paths
+            COLORS.forEach(color => {
+                // Entry point cell
+                const entryIndex = ENTRY_POINTS_MAIN_PATH_INDEX[color];
+                const entryCoord = MAIN_PATH_COORDS[entryIndex];
+                const entryCell = cellElements[getCellId(entryCoord.r, entryCoord.c)];
+                if (entryCell) entryCell.classList.add(`${color}-path`); // Color the entry cell
+
+                // Home path cells
+                HOME_PATHS_COORDS[color].forEach(coord => {
+                    const cell = cellElements[getCellId(coord.r, coord.c)];
+                    if (cell) cell.classList.add(`${color}-path`);
+                });
+            });
+
+            // Center Goal
+            const centerGoal = document.createElement('div');
+            centerGoal.className = 'center-goal';
+            centerGoal.id = 'center-goal';
+            centerGoal.textContent = 'HOME';
+            LUDO_BOARD.appendChild(centerGoal);
+            cellElements['center-goal'] = centerGoal;
+
+            // Define player paths (sequences of cell IDs)
+            COLORS.forEach(color => {
+                const path = [];
+                const entryIndex = ENTRY_POINTS_MAIN_PATH_INDEX[color];
+                // Main path loop
+                for (let i = 0; i < MAIN_PATH_COORDS.length; i++) {
+                    const currentBoardIndex = (entryIndex + i) % MAIN_PATH_COORDS.length;
+                    path.push(getCellId(MAIN_PATH_COORDS[currentBoardIndex].r, MAIN_PATH_COORDS[currentBoardIndex].c));
+                }
+                // Home path
+                HOME_PATHS_COORDS[color].forEach(coord => {
+                    path.push(getCellId(coord.r, coord.c));
+                });
+                path.push('center-goal'); // Final destination
+                playerPaths[color] = path;
+            });
+        }
+
+        function createPawns() {
+            pawnsData = {};
+            COLORS.forEach(color => {
+                for (let i = 0; i < PAWNS_PER_COLOR; i++) {
+                    const pawnId = `${color}-${i}`;
+                    const pawnElement = document.createElement('div');
+                    pawnElement.id = pawnId;
+                    pawnElement.className = `pawn ${color}`;
+                    pawnElement.textContent = i + 1;
+                    pawnElement.draggable = true;
+
+                    const yardSlotId = `${color}-yard-slot-${i}`;
+                    const yardSlotElement = cellElements[yardSlotId];
+                    
+                    if (yardSlotElement) {
+                         yardSlotElement.appendChild(pawnElement);
+                    } else {
+                        console.error(`Yard slot ${yardSlotId} not found for pawn ${pawnId}`);
+                    }
+
+                    pawnsData[pawnId] = {
+                        id: pawnId,
+                        color: color,
+                        element: pawnElement,
+                        currentCellId: yardSlotId,
+                        pathIndex: -1, // -1 means in yard
+                        inYard: true,
+                        homeStretch: false, // True if on colored home path
+                        hasReachedHome: false
+                    };
+
+                    pawnElement.addEventListener('click', () => handlePawnClick(pawnId));
+                    pawnElement.addEventListener('dragstart', (e) => handlePawnDragStart(e, pawnId));
+                    pawnElement.addEventListener('dragend', () => handlePawnDragEnd(pawnId));
+                }
+            });
+        }
+        
+        function handlePawnDragStart(event, pawnId) {
+            event.dataTransfer.setData('text/plain', pawnId);
+            const pawn = pawnsData[pawnId];
+            if (!pawn) return;
+
+            // Show path for this pawn's color
+            clearPathHighlights();
+            const pathToShow = playerPaths[pawn.color];
+            pathToShow.forEach(cellId => {
+                const cell = cellElements[cellId];
+                if (cell) {
+                    cell.classList.add('path-highlight');
+                }
+            });
+        }
+
+        function handlePawnDragEnd(pawnId) {
+            clearPathHighlights();
+        }
+
+        function clearPathHighlights() {
+            document.querySelectorAll('.path-highlight').forEach(cell => {
+                cell.classList.remove('path-highlight');
+            });
+        }
+
+
+        function handleColorSelection() {
+            const selectedRadio = document.querySelector('input[name="playerColor"]:checked');
+            if (selectedRadio) {
+                gameState.activeColor = selectedRadio.value;
+                MOVE_INFO_DISPLAY.textContent = `Player ${gameState.activeColor.toUpperCase()}, roll the dice!`;
+                DICE_ROLL_BUTTON.disabled = false;
+                gameState.isAwaitingPieceSelection = false; // Reset this state
+                clearPawnHighlights(); // Clear highlights from previous turn/color
+            }
+        }
+
+        function handleDiceRoll() {
+            if (!gameState.activeColor) return;
+
+            gameState.diceValue = Math.floor(Math.random() * 6) + 1;
+            DICE_RESULT_DISPLAY.textContent = `Dice: ${gameState.diceValue}`;
+            DICE_ROLL_BUTTON.disabled = true;
+            gameState.isAwaitingPieceSelection = true;
+
+            highlightMovabalePawns();
+            if (!document.querySelector('.pawn.movable')) { // No movable pawns found
+                 MOVE_INFO_DISPLAY.textContent = `No valid moves for ${gameState.activeColor.toUpperCase()} with a ${gameState.diceValue}. Roll again.`;
+                 DICE_ROLL_BUTTON.disabled = false; // Allow re-roll
+                 gameState.isAwaitingPieceSelection = false;
+            } else {
+                 MOVE_INFO_DISPLAY.textContent = `Rolled ${gameState.diceValue}. Click a highlighted ${gameState.activeColor.toUpperCase()} piece to move.`;
+            }
+        }
+        
+        function canPawnMove(pawnId, steps) {
+            const pawn = pawnsData[pawnId];
+            if (!pawn || pawn.hasReachedHome) return false;
+
+            if (pawn.inYard) {
+                return steps === 6;
+            }
+            // Check if move is possible within path length
+            const path = playerPaths[pawn.color];
+            // Path length for main track is 52. Home path length is 6. Total path length is 52+6+1 (goal) = 59.
+            // pathIndex is 0 to 51 for main track, 52 to 57 for home stretch, 58 for goal.
+            const currentPathIndex = pawn.pathIndex;
+            const targetPathIndex = currentPathIndex + steps;
+            
+            if (targetPathIndex < path.length) { // path.length is 59 (0-58)
+                return true;
+            }
+            return false; // Overshoots goal
+        }
+
+        function highlightMovabalePawns() {
+            clearPawnHighlights();
+            Object.values(pawnsData).forEach(pawn => {
+                if (pawn.color === gameState.activeColor && canPawnMove(pawn.id, gameState.diceValue)) {
+                    pawn.element.classList.add('movable');
+                }
+            });
+        }
+        
+        function clearPawnHighlights() {
+            document.querySelectorAll('.pawn.movable').forEach(p => p.classList.remove('movable'));
+        }
+
+        function handlePawnClick(pawnId) {
+            if (!gameState.isAwaitingPieceSelection || !gameState.activeColor || gameState.diceValue === 0) return;
+
+            const pawn = pawnsData[pawnId];
+            if (!pawn || pawn.color !== gameState.activeColor || pawn.hasReachedHome) return;
+
+            if (!pawn.element.classList.contains('movable')) {
+                 MOVE_INFO_DISPLAY.textContent = "This piece cannot make that move. Try another piece or roll again if no moves.";
+                 return;
+            }
+
+            movePawn(pawnId, gameState.diceValue);
+
+            // Reset turn state
+            gameState.diceValue = 0;
+            // DICE_RESULT_DISPLAY.textContent = `Dice: -`; // Keep dice value visible
+            MOVE_INFO_DISPLAY.textContent = `Moved ${pawn.color.toUpperCase()} piece. Player ${gameState.activeColor.toUpperCase()}, roll dice or change color.`;
+            DICE_ROLL_BUTTON.disabled = false;
+            gameState.isAwaitingPieceSelection = false;
+            clearPawnHighlights();
+        }
+
+        function movePawn(pawnId, steps) {
+            const pawn = pawnsData[pawnId];
+            if (!pawn) return;
+
+            const colorPath = playerPaths[pawn.color]; // Full path including home and goal
+
+            if (pawn.inYard) {
+                if (steps === 6) {
+                    pawn.inYard = false;
+                    pawn.pathIndex = 0; // Entry point index in colorPath
+                    const targetCellId = colorPath[pawn.pathIndex];
+                    cellElements[targetCellId].appendChild(pawn.element);
+                    pawn.currentCellId = targetCellId;
+                } else {
+                    return; // Cannot move out
+                }
+            } else {
+                let newPathIndex = pawn.pathIndex + steps;
+
+                if (newPathIndex >= colorPath.length) { // Overshot goal
+                    console.warn("Overshot goal, this shouldn't happen if canPawnMove is correct.");
+                    return; 
+                }
+                
+                pawn.pathIndex = newPathIndex;
+                const targetCellId = colorPath[newPathIndex];
+                cellElements[targetCellId].appendChild(pawn.element);
+                pawn.currentCellId = targetCellId;
+
+                if (targetCellId === 'center-goal') {
+                    pawn.hasReachedHome = true;
+                    pawn.element.draggable = false; // Cannot be moved further
+                    pawn.element.style.cursor = 'default';
+                    MOVE_INFO_DISPLAY.textContent = `${pawn.color.toUpperCase()} piece reached home!`;
+                }
+                
+                // Check if on home stretch (pathIndex > 51 for a 52-step main path)
+                if (pawn.pathIndex >= MAIN_PATH_COORDS.length) {
+                    pawn.homeStretch = true;
+                }
+            }
+            // console.log(`Pawn ${pawnId} moved to ${pawn.currentCellId} (index ${pawn.pathIndex})`);
+        }
+
+        function initializeApp() {
+            createBoard();
+            createPawns();
+
+            COLOR_SELECTOR_RADIOS.forEach(radio => {
+                radio.addEventListener('change', handleColorSelection);
+            });
+            DICE_ROLL_BUTTON.addEventListener('click', handleDiceRoll);
+            
+            MOVE_INFO_DISPLAY.textContent = "Select a color to start.";
+        }
+
+        // Start the app
+        initializeApp();
+
+    </script>
+</body>
+</html>
