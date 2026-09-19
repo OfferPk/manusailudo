@@ -1,0 +1,24 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+*.code-workspace
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Blender autosave
+*.blend1
+
+# Dependencies / build
+node_modules/
+dist/
+.cache/
+*.log
+npm-debug.log*
+*.apk.idsig
