@@ -3,25 +3,889 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Manus AI Ludo – Demos</title>
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="description" content="Explore the Manus AI Ludo browser playground: interactive games, board experiments, and setup prototypes." />
+  <title>Manus AI Ludo — Browser Playground</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
-    h1 { font-size: 1.5rem; }
-    ul { padding-left: 1.2rem; }
-    a { color: #0b57d0; }
-    .note { color: #555; font-size: 0.95rem; }
+    :root {
+      color-scheme: dark;
+      --page: #0b1020;
+      --panel: #121a30;
+      --panel-soft: #17213a;
+      --line: rgba(190, 205, 238, 0.14);
+      --text: #f3f5fb;
+      --muted: #a7b1c8;
+      --quiet: #7e8aa5;
+      --mint: #72e3c1;
+      --gold: #ffd27a;
+      --red: #ff777b;
+      --blue: #68b9ff;
+      --green: #65d8a0;
+      --yellow: #f5cb68;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-width: 320px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 15% 2%, rgba(70, 100, 188, 0.2), transparent 34rem),
+        radial-gradient(ellipse at 90% 22%, rgba(51, 170, 147, 0.1), transparent 28rem),
+        var(--page);
+    }
+
+    a {
+      color: inherit;
+    }
+
+    a:focus-visible {
+      outline: 3px solid var(--gold);
+      outline-offset: 4px;
+      border-radius: 8px;
+    }
+
+    .page-shell {
+      width: min(1160px, calc(100% - 48px));
+      margin-inline: auto;
+    }
+
+    .topbar {
+      display: flex;
+      min-height: 88px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      border-bottom: 1px solid rgba(190, 205, 238, 0.1);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 4px;
+      padding: 7px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 13px;
+      background: rgba(255, 255, 255, 0.07);
+      transform: rotate(-5deg);
+    }
+
+    .brand-mark span {
+      border-radius: 50%;
+    }
+
+    .brand-mark span:nth-child(1) { background: var(--red); }
+    .brand-mark span:nth-child(2) { background: var(--blue); }
+    .brand-mark span:nth-child(3) { background: var(--green); }
+    .brand-mark span:nth-child(4) { background: var(--yellow); }
+
+    .brand-copy {
+      display: grid;
+      gap: 2px;
+    }
+
+    .brand-copy strong {
+      font-size: 0.98rem;
+      letter-spacing: 0.01em;
+    }
+
+    .brand-copy span {
+      color: var(--quiet);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .topbar-nav {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .topbar-nav a {
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: color 160ms ease;
+    }
+
+    .topbar-nav a:hover {
+      color: var(--text);
+    }
+
+    .topbar-nav .notes-link {
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+      align-items: center;
+      gap: clamp(24px, 6vw, 78px);
+      min-height: 420px;
+      margin-top: 38px;
+      padding: clamp(28px, 6vw, 72px);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      background:
+        radial-gradient(circle at 80% 48%, rgba(62, 129, 154, 0.16), transparent 19rem),
+        linear-gradient(125deg, rgba(27, 37, 67, 0.97), rgba(17, 27, 48, 0.97));
+      box-shadow: 0 28px 90px rgba(0, 0, 0, 0.22);
+    }
+
+    .hero::after {
+      position: absolute;
+      right: -80px;
+      bottom: -180px;
+      width: 360px;
+      height: 360px;
+      border: 1px solid rgba(255, 255, 255, 0.045);
+      border-radius: 50%;
+      box-shadow: 0 0 0 36px rgba(255, 255, 255, 0.018), 0 0 0 72px rgba(255, 255, 255, 0.014);
+      content: "";
+      pointer-events: none;
+    }
+
+    .hero-copy,
+    .hero-art {
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 18px;
+      color: var(--mint);
+      font-size: 0.76rem;
+      font-weight: 750;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 22px;
+      height: 2px;
+      border-radius: 999px;
+      background: currentColor;
+      content: "";
+    }
+
+    h1 {
+      max-width: 650px;
+      margin: 0;
+      font-size: clamp(2.4rem, 4.8vw, 4.15rem);
+      font-weight: 760;
+      letter-spacing: -0.065em;
+      line-height: 0.99;
+    }
+
+    h1 span {
+      display: block;
+      margin-top: 8px;
+      color: #a9b9dd;
+    }
+
+    .hero-description {
+      max-width: 490px;
+      margin: 22px 0 28px;
+      color: var(--muted);
+      font-size: 1.02rem;
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .button {
+      display: inline-flex;
+      min-height: 48px;
+      align-items: center;
+      justify-content: center;
+      gap: 11px;
+      padding: 0 19px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+    }
+
+    .button-primary {
+      color: #11231f;
+      background: var(--mint);
+      box-shadow: 0 10px 28px rgba(74, 212, 173, 0.16);
+    }
+
+    .button-primary:hover {
+      background: #8aedd0;
+    }
+
+    .button-secondary {
+      border-color: var(--line);
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .button-secondary:hover {
+      border-color: rgba(190, 205, 238, 0.32);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .button-arrow {
+      font-size: 1.12rem;
+      line-height: 1;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin-top: 26px;
+      color: var(--quiet);
+      font-size: 0.8rem;
+    }
+
+    .hero-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--mint);
+      box-shadow: 0 0 12px rgba(114, 227, 193, 0.75);
+    }
+
+    .hero-art {
+      display: grid;
+      min-height: 275px;
+      place-items: center;
+    }
+
+    .board-frame {
+      position: relative;
+      width: min(100%, 310px);
+      padding: 13px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 25px;
+      background: rgba(8, 13, 27, 0.58);
+      box-shadow: 0 24px 65px rgba(0, 0, 0, 0.32), inset 0 1px rgba(255, 255, 255, 0.06);
+      transform: rotate(4deg);
+    }
+
+    .board-preview {
+      display: grid;
+      aspect-ratio: 1;
+      grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+      gap: 7px;
+      padding: 7px;
+      border-radius: 17px;
+      background: #202a43;
+    }
+
+    .home {
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 13px;
+    }
+
+    .home-red { background: linear-gradient(145deg, #ef747b, #c94f68); }
+    .home-blue { background: linear-gradient(145deg, #68b9ff, #3e79d5); }
+    .home-green { background: linear-gradient(145deg, #65d8a0, #32977c); }
+    .home-yellow { background: linear-gradient(145deg, #f5cb68, #d99a45); }
+
+    .token-cluster {
+      display: grid;
+      width: 53%;
+      aspect-ratio: 1;
+      grid-template: repeat(2, 1fr) / repeat(2, 1fr);
+      place-items: center;
+      gap: 9%;
+      padding: 8%;
+      border-radius: 13px;
+      background: rgba(250, 251, 255, 0.91);
+      box-shadow: 0 5px 12px rgba(21, 30, 51, 0.16);
+    }
+
+    .token-cluster i {
+      width: 72%;
+      aspect-ratio: 1;
+      border: 2px solid rgba(255, 255, 255, 0.75);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.17);
+      box-shadow: inset 0 0 0 3px rgba(25, 34, 54, 0.16);
+    }
+
+    .lane {
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.045);
+      border-radius: 8px;
+      background: #d8e0ed;
+    }
+
+    .lane-horizontal::before,
+    .lane-vertical::before {
+      position: absolute;
+      inset: 50% auto auto 50%;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #8794ad;
+      box-shadow: 0 -13px 0 #8794ad, 0 13px 0 #8794ad;
+      content: "";
+      transform: translate(-50%, -50%);
+    }
+
+    .lane-vertical::before {
+      box-shadow: -13px 0 0 #8794ad, 13px 0 0 #8794ad;
+    }
+
+    .finish {
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 9px;
+      color: #fff6df;
+      background: conic-gradient(from 45deg, #e9646c 0 25%, #e8bc5c 0 50%, #61c695 0 75%, #63a7ec 0);
+      font-size: clamp(1.45rem, 4vw, 2.2rem);
+      text-shadow: 0 2px 8px rgba(31, 38, 54, 0.38);
+    }
+
+    .float-label {
+      position: absolute;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 13px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      color: #e7ebf5;
+      background: rgba(14, 22, 41, 0.9);
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.24);
+      font-size: 0.75rem;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .float-label-top {
+      top: 12px;
+      right: -26px;
+    }
+
+    .float-label-bottom {
+      bottom: 12px;
+      left: -34px;
+    }
+
+    .float-label b {
+      display: grid;
+      width: 20px;
+      height: 20px;
+      place-items: center;
+      border-radius: 50%;
+      color: #10221e;
+      background: var(--mint);
+      font-size: 0.7rem;
+    }
+
+    .demos-section {
+      padding: 72px 0 56px;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .section-heading .eyebrow {
+      margin-bottom: 11px;
+      color: var(--gold);
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(1.8rem, 3vw, 2.55rem);
+      letter-spacing: -0.045em;
+      line-height: 1.08;
+    }
+
+    .section-heading > p {
+      max-width: 370px;
+      margin: 0 0 3px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 15px;
+    }
+
+    .demo-card {
+      position: relative;
+      display: flex;
+      min-height: 222px;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 23px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 19px;
+      color: inherit;
+      background: linear-gradient(155deg, rgba(24, 34, 59, 0.96), rgba(17, 25, 44, 0.96));
+      text-decoration: none;
+      transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
+    }
+
+    .demo-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(114, 227, 193, 0.4);
+      background: linear-gradient(155deg, rgba(28, 42, 69, 0.98), rgba(19, 30, 51, 0.98));
+    }
+
+    .demo-card:focus-visible {
+      outline: 3px solid var(--gold);
+      outline-offset: 3px;
+    }
+
+    .demo-card-featured {
+      grid-column: span 2;
+      min-height: 245px;
+      background:
+        radial-gradient(circle at 87% 80%, rgba(74, 212, 173, 0.13), transparent 13rem),
+        linear-gradient(155deg, rgba(27, 44, 66, 0.98), rgba(17, 28, 48, 0.98));
+    }
+
+    .card-topline {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: auto;
+    }
+
+    .card-index {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      color: #c7d1e5;
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 0.76rem;
+      font-weight: 750;
+      letter-spacing: 0.04em;
+    }
+
+    .card-tag {
+      padding: 6px 9px;
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      border-radius: 999px;
+      color: #b9c4dc;
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 0.69rem;
+      font-weight: 650;
+      letter-spacing: 0.02em;
+    }
+
+    .tag-live {
+      border-color: rgba(114, 227, 193, 0.24);
+      color: #a0efd8;
+      background: rgba(114, 227, 193, 0.08);
+    }
+
+    .demo-card h3 {
+      margin: 24px 0 7px;
+      font-size: 1.18rem;
+      letter-spacing: -0.025em;
+    }
+
+    .demo-card p {
+      max-width: 490px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.87rem;
+      line-height: 1.6;
+    }
+
+    .card-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 19px;
+      color: var(--mint);
+      font-size: 0.82rem;
+      font-weight: 750;
+    }
+
+    .card-link span {
+      transition: transform 160ms ease;
+    }
+
+    .demo-card:hover .card-link span {
+      transform: translateX(4px);
+    }
+
+    .site-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 22px 0 30px;
+      border-top: 1px solid rgba(190, 205, 238, 0.1);
+      color: var(--quiet);
+      font-size: 0.78rem;
+      line-height: 1.5;
+    }
+
+    .site-footer p {
+      max-width: 690px;
+      margin: 0;
+    }
+
+    .site-footer a {
+      flex: 0 0 auto;
+      color: #c2cce0;
+      text-decoration-color: rgba(194, 204, 224, 0.38);
+      text-underline-offset: 3px;
+    }
+
+    .site-footer a:hover {
+      color: var(--mint);
+    }
+
+    @media (max-width: 850px) {
+      .hero {
+        grid-template-columns: minmax(0, 1.1fr) minmax(220px, 0.9fr);
+        gap: 24px;
+        padding: 42px;
+      }
+
+      .board-frame {
+        width: min(100%, 270px);
+      }
+
+      .demo-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .demo-card-featured {
+        grid-column: span 2;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-shell {
+        width: min(100% - 32px, 520px);
+      }
+
+      .topbar {
+        flex-wrap: wrap;
+        min-height: 72px;
+        padding-block: 10px;
+      }
+
+      .topbar-nav {
+        margin-left: auto;
+        gap: 15px;
+      }
+
+      .topbar-nav a {
+        font-size: 0.82rem;
+      }
+
+      .topbar-nav .notes-link {
+        padding: 8px 11px;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        min-height: auto;
+        margin-top: 22px;
+        padding: 30px 24px 22px;
+        border-radius: 23px;
+      }
+
+      h1 {
+        font-size: clamp(2.65rem, 12vw, 4.25rem);
+      }
+
+      .hero-description {
+        margin: 17px 0 22px;
+        font-size: 0.94rem;
+      }
+
+      .hero-art {
+        min-height: auto;
+        padding: 14px 0 16px;
+      }
+
+      .board-frame {
+        width: min(72vw, 270px);
+      }
+
+      .float-label-top {
+        right: -20px;
+      }
+
+      .float-label-bottom {
+        left: -20px;
+      }
+
+      .demos-section {
+        padding: 52px 0 40px;
+      }
+
+      .section-heading {
+        display: block;
+      }
+
+      .section-heading > p {
+        margin-top: 12px;
+      }
+
+      .demo-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .demo-card,
+      .demo-card-featured {
+        grid-column: auto;
+        min-height: 204px;
+        padding: 21px;
+      }
+
+      .demo-card-featured {
+        min-height: 220px;
+      }
+
+      .site-footer {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+
+    @media (max-width: 390px) {
+      .brand-copy span {
+        font-size: 0.65rem;
+      }
+
+      .topbar-nav {
+        gap: 10px;
+      }
+
+      .topbar-nav a {
+        font-size: 0.76rem;
+      }
+
+      .topbar-nav .notes-link {
+        padding: 7px 9px;
+      }
+
+      .hero-actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .button {
+        width: 100%;
+      }
+
+      .hero-meta {
+        gap: 10px 16px;
+      }
+
+      .float-label {
+        padding: 8px 10px;
+        font-size: 0.68rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>Manus AI Ludo</h1>
-  <p class="note">Pick a browser demo. Self-contained HTML files work best until assets are reorganized.</p>
-  <ul>
-    <li><a href="workingludogai.html">workingludogai.html</a> – interactive basics</li>
-    <li><a href="ultimate_ludo.html">ultimate_ludo.html</a> – ultimate prototype</li>
-    <li><a href="ludoboardgoogleai.html">ludoboardgoogleai.html</a> – board / movement</li>
-    <li><a href="advanced_ludo.html">advanced_ludo.html</a> – modular Cosmic Ludo shell</li>
-    <li><a href="playerselection.html">playerselection.html</a> – player setup UI</li>
-  </ul>
-  <p class="note">See <a href="README.md">README.md</a> for layout notes and known gaps.</p>
+  <div class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="Manus AI Ludo playground home">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <span class="brand-copy">
+          <strong>Manus AI Ludo</strong>
+          <span>Browser playground</span>
+        </span>
+      </a>
+      <nav class="topbar-nav" aria-label="Main navigation">
+        <a href="#demos">Explore demos</a>
+        <a class="notes-link" href="README.md">Project notes</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">The Ludo playground</p>
+          <h1 id="hero-title">Roll in.<span>Find your next favorite board.</span></h1>
+          <p class="hero-description">A collection of browser-ready Ludo experiments—from a playable classic to new board ideas and setup screens. Pick a demo and jump straight in.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="workingludogai.html">Play the interactive demo <span class="button-arrow" aria-hidden="true">→</span></a>
+            <a class="button button-secondary" href="#demos">Browse all demos</a>
+          </div>
+          <div class="hero-meta" aria-label="Playground details">
+            <span><i class="status-dot" aria-hidden="true"></i> 5 browser experiments</span>
+            <span>Free to explore · No install</span>
+          </div>
+        </div>
+
+        <div class="hero-art" aria-hidden="true">
+          <div class="board-frame">
+            <div class="board-preview">
+              <div class="home home-red"><span class="token-cluster"><i></i><i></i><i></i><i></i></span></div>
+              <div class="lane lane-vertical"></div>
+              <div class="home home-blue"><span class="token-cluster"><i></i><i></i><i></i><i></i></span></div>
+              <div class="lane lane-horizontal"></div>
+              <div class="finish">★</div>
+              <div class="lane lane-horizontal"></div>
+              <div class="home home-green"><span class="token-cluster"><i></i><i></i><i></i><i></i></span></div>
+              <div class="lane lane-vertical"></div>
+              <div class="home home-yellow"><span class="token-cluster"><i></i><i></i><i></i><i></i></span></div>
+            </div>
+            <span class="float-label float-label-top"><b>4</b> players, one board</span>
+            <span class="float-label float-label-bottom"><b>✦</b> Choose your next move</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="demos-section" id="demos" aria-labelledby="demos-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Choose your table</p>
+            <h2 id="demos-title">Explore the demos</h2>
+          </div>
+          <p>Each link opens a standalone experiment. Some are playable; others are works in progress or focused UI sketches.</p>
+        </div>
+
+        <div class="demo-grid">
+          <a class="demo-card demo-card-featured" href="workingludogai.html">
+            <span class="card-topline">
+              <span class="card-index">01</span>
+              <span class="card-tag tag-live">Playable · Start here</span>
+            </span>
+            <h3>Classic Ludo basics</h3>
+            <p>Try the interactive board and piece movement in the most game-ready browser demo.</p>
+            <span class="card-link">Open the game <span aria-hidden="true">→</span></span>
+          </a>
+
+          <a class="demo-card" href="ultimate_ludo.html">
+            <span class="card-topline">
+              <span class="card-index">02</span>
+              <span class="card-tag">Prototype</span>
+            </span>
+            <h3>Ultimate Ludo</h3>
+            <p>A broader game prototype exploring extra board and play variations.</p>
+            <span class="card-link">View prototype <span aria-hidden="true">→</span></span>
+          </a>
+
+          <a class="demo-card" href="ludoboardgoogleai.html">
+            <span class="card-topline">
+              <span class="card-index">03</span>
+              <span class="card-tag">Movement lab</span>
+            </span>
+            <h3>Board &amp; movement</h3>
+            <p>A focused experiment for rolling the dice and testing piece movement.</p>
+            <span class="card-link">Open the lab <span aria-hidden="true">→</span></span>
+          </a>
+
+          <a class="demo-card" href="advanced_ludo.html">
+            <span class="card-topline">
+              <span class="card-index">04</span>
+              <span class="card-tag">Experimental</span>
+            </span>
+            <h3>Cosmic Ludo shell</h3>
+            <p>A modular game shell connecting the project's separate UI and game modules.</p>
+            <span class="card-link">Explore the shell <span aria-hidden="true">→</span></span>
+          </a>
+
+          <a class="demo-card" href="playerselection.html">
+            <span class="card-topline">
+              <span class="card-index">05</span>
+              <span class="card-tag">UI sketch</span>
+            </span>
+            <h3>Player setup</h3>
+            <p>Preview player-count and computer-player setup with a color-coded board.</p>
+            <span class="card-link">Preview setup <span aria-hidden="true">→</span></span>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>These are independent prototypes and UI experiments. Features and completeness vary by demo; see the project notes for known gaps.</p>
+      <a href="README.md">Read project notes <span aria-hidden="true">↗</span></a>
+    </footer>
+  </div>
 </body>
 </html>
